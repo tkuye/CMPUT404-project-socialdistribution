@@ -14,6 +14,7 @@ from django.test import TestCase, Client
 from . import models
 import datetime
 
+# FIXME: tHE THING RUNS EACH TEST INDEPENDANT FROM EACH OTHER BUT THAT'S NOT HOW i WROTE THEM.
 
 # Create your tests here.
 class PostEndpointTest(TestCase):
@@ -181,7 +182,6 @@ class PostEndpointTest(TestCase):
                                         visibility='PUBLIC',
                                         published=self.post1_published)   # TODO: Add more parameters if needed
         # TODO: Make more posts so can test markdown content types and what not in the GET test
-        
         self.author1_json = self.helper_generate_author_json(
                                                           id='post_test_author')
         self.post1_json = self.helper_generate_post_json(

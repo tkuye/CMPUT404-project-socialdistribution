@@ -55,8 +55,9 @@ def post_view(request, pid):
         return JsonResponse(deserializer.data, status=200)  #TODO: Fix the test for this, it only expects to receive the new id, and not the whole json object.
     
     
-# @api_view(['GET', 'POST'])
-# def posts_view(request, pid):
+@api_view(['GET', 'POST'])
+def posts_view(request, pid):
+    pass
 #     if request.method == 'GET':
 #         # TODO: if request host/url is some other node's, do a remote request
 #         # post = PostModel.objects.get(id=pid)

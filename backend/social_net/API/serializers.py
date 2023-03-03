@@ -40,8 +40,8 @@ class PostSerializer(serializers.ModelSerializer):
                   'count', 'comments', 'published', 'visibility', 'unlisted']
         extra_kwargs = {
             'title': {'required': True},
-            'origin': {'required': True},
-            'source': {'required': True},
+            'origin': {'required': False},
+            'source': {'required': False},
             'description': {'required': True},
             'contentType': {'required': True},
             'content': {'required': True},
