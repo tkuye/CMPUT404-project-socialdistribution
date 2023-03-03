@@ -1,5 +1,5 @@
 #from django.contrib.auth.models import User, Group
-from .models import AuthorModel
+from .models import AuthorModel, Post, Comment, Like
 from rest_framework import serializers
 
 class AuthorSerializer(serializers.ModelSerializer):
@@ -25,3 +25,24 @@ class AuthorSerializer(serializers.ModelSerializer):
         model = AuthorModel
         # Tuple of serialized model fields (see link [2])
         fields = ('type', 'id', 'host', 'displayName', 'github', 'url', 'profileImage')
+    
+class PostSerializer(serializers.ModelSerializer):
+    author = AuthorSerializer()
+
+    class Meta:
+        model = Post
+        fields = ['post', 'title', 'description', 'content', 'published', 'author', 'categories', 'visibility', 'unlisted']
+
+class CommentSerializer(serializers.ModelSerializer):
+    author = AuthorSerializer()
+
+    class Meta:
+        model = Comment
+        fields = ['comment', 'content', 'published', 'author', 'post']
+
+class LikeSerializer(serializers.ModelSerializer):
+    author = AuthorSerializer()
+
+    class Meta:
+        model = Like
+        fields = ['like', 'author', 'object', 'published']
