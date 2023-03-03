@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User, Group
-from .models import AuthorModel
+from .models import AuthorModel, PostModel
 from rest_framework import serializers
 
 class AuthorSerializer(serializers.ModelSerializer):
@@ -26,3 +26,30 @@ class AuthorSerializer(serializers.ModelSerializer):
         model = AuthorModel
         # Tuple of serialized model fields (see link [2])
         fields = ('type', 'id', 'host', 'displayName', 'github', 'url', 'profileImage')
+        
+        
+class PostSerializer(serializers.ModelSerializer):
+    # TODO: Find a way to yeet comments into the serialized output
+    # Guess: can prolly do this by declaring an additional
+    # serializer.PrimaryKeyRelatedField as a class attribute and then doing some
+    # processing to fill it somehow.
+    class Meta:
+        model = PostModel
+        fields = ['title', 'origin', 'source', 'description',
+                  'contentType', 'content', 'author', 'categories',
+                  'count', 'comments', 'published', 'visibility', 'unlisted']
+        extra_kwargs = {
+            'title': {'required': True},
+            'origin': {'required': True},
+            'source': {'required': True},
+            'description': {'required': True},
+            'contentType': {'required': True},
+            'content': {'required': True},
+            'author': {'required': True},
+            'categories': {'required': True, 'allow_empty':True},
+            'count': {'required': True},
+            'comments': {'required': True},
+            'published': {'required': True},
+            'visibility': {'required': True},
+            'unlisted': {'required': True}
+        }
