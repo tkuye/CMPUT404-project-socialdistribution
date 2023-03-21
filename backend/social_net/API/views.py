@@ -476,7 +476,7 @@ def CommentLikeView(request, author_id, post_id, comment_id):
 @permission_classes([IsAdminUser|IsAuthenticated&PermittedForRemote])
 def LikedView(request, author_id):
     """
-    API endpoint that allows users to be viewed or edited.
+    API endpoint that allows users to  view liked posts.
     """
     liked_paginated = []
     liked_object = LikeModel.objects.filter(author=author_id)
