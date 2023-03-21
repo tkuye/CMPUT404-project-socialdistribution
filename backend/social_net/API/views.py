@@ -42,7 +42,7 @@ class PermittedForRemote(BasePermission):
 @permission_classes([IsAdminUser|IsAuthenticated&PermittedForRemote])
 def AuthorView(request, uid):
     """
-    API endpoint that allows users to be viewed or edited.
+    API endpoint that allows users logged in as admin to view or edit author profiles.
     
     URL: ://service/authors/{AUTHOR_ID}/
         GET [local, remote]: retrieve AUTHOR_ID’s profile
@@ -173,7 +173,7 @@ def AuthorFollowersOperationsView(request, uid, foreign_uid):
 @permission_classes([IsAdminUser|IsAuthenticated&PermittedForRemote])
 def FollowView(request, author_uid, foreign_uid):
     """
-    API endpoint that allows users to be viewed or edited.
+    API endpoint that allows users to  follow/unfollow other users.
     """
     #checks friendship
     if request.method == 'GET':
@@ -218,7 +218,7 @@ def FollowView(request, author_uid, foreign_uid):
 @permission_classes([IsAdminUser|IsAuthenticated&PermittedForRemote])
 def SearchView(request):
     """
-    API endpoint that allows users to be viewed or edited.
+    API endpoint that allows users to search for other users.
     """
     #checks friendship
     if request.method == 'GET':
@@ -460,7 +460,7 @@ def PostLikeView(request, author_id, post_id):
 @permission_classes([IsAdminUser|IsAuthenticated&PermittedForRemote])
 def CommentLikeView(request, author_id, post_id, comment_id):
     """
-    API endpoint that allows users to be viewed or edited.
+    API endpoint that allows users to be viewed  liked posts.
     """
     comment_likes_paginated = []
     object = "http://127.0.0.1:5454/authors/"+ author_id+ "/posts/"+ post_id+ "/comments/"+ comment_id + "/"
