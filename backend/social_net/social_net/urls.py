@@ -10,11 +10,11 @@ from drf_yasg import openapi
 schema_view = get_schema_view(
    openapi.Info(
       title="CMPUT404-project-socialdistribution API",
-      default_version='v1',
+      default_version='v1.0.0',
       description="CMPUT404-project-socialdistribution See project.org (plain-text/org-mode) for a description of the project. Make a distributed social network!",
       terms_of_service="https://github.com/Sean-Meyers/CMPUT404-project-socialdistribution/blob/master/README.md",
       contact=openapi.Contact(email="qg@ualberta.ca"),
-      license=openapi.License(name="BSD License"),
+      license=openapi.License(name="MIT License"),
    ),
    public=True,
    permission_classes=[permissions.AllowAny],
