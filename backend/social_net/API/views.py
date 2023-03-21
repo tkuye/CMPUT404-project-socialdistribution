@@ -427,7 +427,7 @@ def InboxView(request, author_id):
 @permission_classes([IsAdminUser|IsAuthenticated&PermittedForRemote])
 def PostLikeView(request, author_id, post_id):
     """
-    API endpoint that allows users to be viewed or edited.
+    API endpoint that allows users to like a post.
     """
     post_likes_paginated = []
     object = "http://127.0.0.1:5454/authors/"+ author_id+ "/posts/"+ post_id
@@ -443,7 +443,7 @@ def PostLikeView(request, author_id, post_id):
 @permission_classes([IsAdminUser|IsAuthenticated&PermittedForRemote])
 def PostLikeView(request, author_id, post_id):
     """
-    API endpoint that allows users to be viewed or edited.
+    API endpoint that allows users to be viewed  liked posts.
     """
     post_likes_paginated = []
     object = "http://127.0.0.1:5454/authors/"+ author_id+ "/posts/"+ post_id + "/"  # XXX: Is it really necessary to copy all this other code just so we can also handle the trailing '/'? Also, I think the spec doesn't have a trailing '/' for this endpoint.
