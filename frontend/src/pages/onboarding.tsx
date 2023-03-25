@@ -30,7 +30,7 @@ const Create: React.FC<createProps> = ({}) => {
         data.github = 'https://github.com/' + data.github
         delete data.profile
         data.host = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
-        data.url = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000' + '/authors/' + user?.id
+        data.url = (process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000') + '/authors/' + user?.id
         try {
             await axios.post('/authors/', data)	// CHANGED: "/authors" to "/authors/"
             router.push('/')
@@ -43,7 +43,7 @@ const Create: React.FC<createProps> = ({}) => {
     return (
 		<div className='container mx-auto mt-12'>
 		<Auth
-		  redirectTo="http://localhost:3000/"
+		  redirectTo={process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}
 		  appearance={{ theme: ThemeSupa }}
 		  supabaseClient={supabaseClient}
 		  socialLayout="horizontal"

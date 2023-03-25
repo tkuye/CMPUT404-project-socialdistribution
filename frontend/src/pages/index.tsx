@@ -8,7 +8,7 @@ import { useUser, useSupabaseClient } from '@supabase/auth-helpers-react'
 import Head from 'next/head';
 import { GetServerSideProps } from 'next';
 import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
-import axios, { remoteInstance } from '@/utils/axios'
+import axios, { remoteInstances } from '@/utils/axios'
 import { Post } from '@/index';
 
 
@@ -30,7 +30,7 @@ const Stream: React.FC<streamProps> = ({posts}) => {
   return (
 	  <div className='container mx-auto mt-12'>
 	<Auth
-	  redirectTo="http://localhost:3000/"
+	  redirectTo={process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}
 	  appearance={{ theme: ThemeSupa }}
 	  supabaseClient={supabaseClient}
 	  socialLayout="horizontal"
@@ -103,12 +103,18 @@ export const getServerSideProps:GetServerSideProps = async (context) => {
 		}
 	  });
 
-	  let remotePosts = await remoteInstance.get("/authors/80e83b86-0d26-4189-b68a-bf57e8c87af1/posts/");
-	//   console.log(remotePosts.data);
+	  let remotePosts = [];
+	  //   console.log(remotePosts.data);
+	  for (let node of remoteInstances) {
+		let posts = await node.get("/authors/80e83b86-0d26-4189-b68a-bf57e8c87af1/posts/");		// FIXME: HARDCODED TO A SINGLE AUTHOR
+	  	remotePosts.push(...posts.data.items);
+	  }
 
 	return {
 	  props: {
-		posts: [...remotePosts.data.items, ...resPosts.data.posts]
+		posts: [...remotePosts, ...resPosts.data.posts].sort((a, b) => {
+			return (new Date(a.published) <= new Date(b.published))  ?  1  :  -1
+		})
 	  }
 	}
   }

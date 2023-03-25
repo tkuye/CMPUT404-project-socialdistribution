@@ -23,7 +23,7 @@ const Inbox: React.FC<inboxProps> = ({}) => {
   return (
 	  <div className='container mx-auto mt-12'>
 	<Auth
-	  redirectTo="http://localhost:3000/"
+	  redirectTo={process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}
 	  appearance={{ theme: ThemeSupa }}
 	  supabaseClient={supabaseClient}
 	  socialLayout="horizontal"
