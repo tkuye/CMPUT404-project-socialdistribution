@@ -1,33 +1,28 @@
-CMPUT404-project-socialdistribution
-===================================
+This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
-CMPUT404-project-socialdistribution
+## Getting Started
 
-See project.org (plain-text/org-mode) for a description of the project.
+First, run the development server:
 
-Make a distributed social network!
+```bash
+npm run dev
+# or
+yarn dev
+```
 
-Contributing
-============
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-Send a pull request and be sure to update this file with your name.
+You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
 
-Contributors / Licensing
-========================
+[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
 
-Generally everything is LICENSE'D under the Apache 2 license by Abram Hindle, Sean Meyers, Cenab Bora, Tosine Kuye, Sukanta Saha Qiaoxi Guo.
+The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
 
-All text is licensed under the CC-BY-SA 4.0 http://creativecommons.org/licenses/by-sa/4.0/deed.en_US
+This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
 
-Contributors:
+## Usage with Supabase
+This project uses Supabase for authentication.
+In order to effectively login and create accounts, you will need the following environment variables:
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
-    Karim Baaba
-    Ali Sajedi
-    Kyle Richelhoff
-    Chris Pavlicek
-    Derek Dowling
-    Olexiy Berjanskii
-    Erin Torbiak
-    Abram Hindle
-    Braedy Kuzma
-    Nhan Nguyen 
