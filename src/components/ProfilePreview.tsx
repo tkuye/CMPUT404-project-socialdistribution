@@ -10,9 +10,9 @@ const ProfilePreview: React.FC<ProfilePreviewProps> = ({author}) => {
     const router = useRouter()
     const goToProfile = () => {
         // check if id is url
-        if (author.id.startsWith('http')) {
+        if (author?.id?.startsWith('http')) {
             // get end of url
-            const id = author.id.split('/').pop()
+            const id = author?.id?.split('/').pop()
             router.push(`/authors/${id}`)
         } else {
             router.push(`/authors/${author.id}`)

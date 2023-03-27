@@ -12,7 +12,7 @@ import {ThemeSupa} from '@supabase/auth-ui-shared'
 import { useUser, useSupabaseClient } from '@supabase/auth-helpers-react'
 import { useForm, FormProvider } from "react-hook-form";
 import { getBase64 } from '@/utils';
-import NodeManager from '@/nodes';
+import {NodeManager, NodeClient}from '@/nodes';
 import { useRouter } from 'next/router';
 import { GetServerSideProps } from 'next';
 import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
@@ -60,9 +60,9 @@ const Create: React.FC<createProps> = ({authorId}) => {
 			unlisted: data.visibility === 'UNLISTED',
 			visibility: data.visibility,
 			}
-			let createdPost = await NodeManager.createPost(authorId, post)
+			let createdPost = await NodeClient.createPost(authorId, post)
 			if (createdPost) {
-				await NodeManager.alertNewPost(authorId, createdPost) 
+				await NodeClient.alertNewPost(authorId, createdPost) 
 			}
 			
 			await router.push(`/authors/${authorId}`)

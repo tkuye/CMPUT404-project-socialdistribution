@@ -7,7 +7,7 @@ import Head from 'next/head'
 import Sidebar from '@/components/Sidebar'
 import { GetServerSideProps } from 'next';
 import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
-import NodeManager from '@/nodes';
+import {NodeManager, NodeClient} from '@/nodes';
 import {useForm} from 'react-hook-form'
 import { Author } from '..';
 import ProfilePreview from '@/components/ProfilePreview';
@@ -24,25 +24,24 @@ const SearchPage: React.FC<searchProps> = ({}) => {
 	const {register, handleSubmit} = useForm()
 
 	const searchSubmit = async (data:any) => {
-		const searchData = await axios.get('/api/authors', {
-			params: {
-				query:data.search
-			}
+		const searchData = await NodeClient.getAuthors(undefined, undefined, data.search);
+		let searchItems = searchData.items
+
+		if (searchItems) {
+			setSearches(searchItems)
+			setSearch(true)
 		}
-		);
-		let searchItems = searchData.data.items
-		setSearches(searchItems)
-		setSearch(true)
+		
 	}
 
 
-		return (<div className='mb-8 '>
+		return (<div className=''>
 	
 			<div className='flex flex-col h-screen'>
 			<Head>
 				<title>Stream</title>
 			</Head>
-	<div className='flex flex-1 overflow-hidden'>
+	<div className='flex flex-1 overflow-y-hidden'>
 			<Sidebar/>
 	<div className='flex flex-1 flex-col overflow-y-auto w-full py-12'>
 		<div className='w-full mx-auto bg-white px-6 max-w-5xl'> 

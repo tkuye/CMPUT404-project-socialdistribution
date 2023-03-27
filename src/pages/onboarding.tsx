@@ -8,7 +8,7 @@ import { Auth } from '@supabase/auth-ui-react'
 import {ThemeSupa} from '@supabase/auth-ui-shared'
 import { useUser, useSupabaseClient } from '@supabase/auth-helpers-react'
 import { useForm } from "react-hook-form";
-import NodeManager from '@/nodes';
+import {NodeManager, NodeClient} from '@/nodes';
 import {getBase64} from '@/utils'
 import { useRouter } from 'next/router';
 import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
@@ -34,7 +34,7 @@ const Create: React.FC<createProps> = ({}) => {
         data.url = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/service' + '/authors/' + user?.id	// Changed urls here to reference the backend since that's really what they should do, hopefully this doesn't break the frontend.
 		data.type = 'author'
 		try {
-            await NodeManager.createAuthor(data);
+            await NodeClient.createAuthor(data);
             router.push('/')
         } catch (error) {
             console.log(error)

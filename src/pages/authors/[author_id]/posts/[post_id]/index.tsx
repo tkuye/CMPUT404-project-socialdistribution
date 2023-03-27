@@ -10,7 +10,7 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
 import { Author, Post as PostType, Comment } from '@/index';
-import NodeManager from '@/nodes';
+import {NodeManager} from '@/nodes';
 
 interface Props {
 	post: PostType,
@@ -18,9 +18,6 @@ interface Props {
 }
 
 const Page: NextPage<Props> = ({post, comments}) => {
-	const supabaseClient = useSupabaseClient()
-  	const user = useUser();
-	const router = useRouter();
 
 		return (
 		<div className='flex flex-col h-screen'>
@@ -59,7 +56,7 @@ export const getServerSideProps:GetServerSideProps = async (context) => {
 
         let post = await NodeManager.getPost(authorId as string, postId as string);
 		let comments = await NodeManager.getComments(authorId as string, postId as string)
-
+		
 
 		let visibility = post?.visibility;
 		

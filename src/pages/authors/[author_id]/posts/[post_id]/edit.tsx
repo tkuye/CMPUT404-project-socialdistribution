@@ -12,7 +12,7 @@ import {ThemeSupa} from '@supabase/auth-ui-shared'
 import { useUser, useSupabaseClient } from '@supabase/auth-helpers-react'
 import { useForm, FormProvider } from "react-hook-form";
 import { getBase64 } from '@/utils';
-import NodeManager from '@/nodes';
+import {NodeManager, NodeClient} from '@/nodes';
 import { useRouter } from 'next/router';
 import { GetServerSideProps } from 'next';
 import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
@@ -31,7 +31,7 @@ interface createProps {
 
 
 const Edit: React.FC<createProps> = ({post, postId, authorId}) => {
-	const [selectValue, setSelectValue] = useState<string>(post.contentType);
+	const [selectValue, setSelectValue] = useState<string>(post?.contentType || 'text/plain');
 	const [markDownValue, setMarkDownValue] = useState<string | undefined>(
         post.contentType === 'text/markdown' ? post.content : undefined
     )
@@ -39,7 +39,7 @@ const Edit: React.FC<createProps> = ({post, postId, authorId}) => {
         defaultValues: {
             title: post.title,
             description:post.description,
-            categories: post.categories.join(','),
+            categories: typeof post.categories === 'string' ? post.categories : post.categories?.join(','),
             contentType: post.contentType,
             visibility: post.visibility ? 'PUBLIC' : post.unlisted ? 'UNLISTED' : 'PRIVATE',
             content: post.content,
@@ -76,12 +76,11 @@ const Edit: React.FC<createProps> = ({post, postId, authorId}) => {
 				visibility: data.visibility,
 			}
 
-			let updatedPost = await NodeManager.updatePost(authorId, postId, post)
+			let updatedPost = await NodeClient.updatePost(authorId, postId, post)
 			if (updatedPost) {
-				await NodeManager.alertNewPost(authorId, post)
+				await NodeClient.alertNewPost(authorId, post)
 			}
 		
-			console.log(`/authors/${authorId}/posts/${postId}`)
 		await router.push(`/authors/${authorId}/posts/${postId}`)
 		} catch (error) {
 			console.log(error)

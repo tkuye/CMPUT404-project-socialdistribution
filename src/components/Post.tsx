@@ -7,7 +7,7 @@ import { ThumbsUp, Share, Link2, MessageCircle } from 'react-feather';
 import { Tooltip } from '@material-tailwind/react';
 import { Menu } from '@headlessui/react'
 import {Post as PostProps, Comment as CommentI} from '@/index';
-import NodeManager from '@/nodes';
+import {NodeClient} from '@/nodes';
 import { useRouter } from 'next/router';
 import { useUser } from '@supabase/auth-helpers-react';
 import { Transition, Dialog } from '@headlessui/react';
@@ -34,10 +34,10 @@ const Post: React.FC<PostPr> = ({post, comments}) => {
 	
 	useEffect(() => {
 		
-		let postId = post.id.split('/').pop()
+		let postId = post?.id?.split('/').pop()
 		if (!user)
 			return;
-		NodeManager.isPostLiked(postId || '', user?.id || ``).then((res) => {
+		NodeClient.isPostLiked(postId || '', user?.id || ``).then((res) => {
 			if (res) {
 				setLiked(true)
 			}
@@ -47,21 +47,21 @@ const Post: React.FC<PostPr> = ({post, comments}) => {
 	}, [user])
 
 	const likePost =async () => {
-		let authorId = post.author.id.split('/').pop() || '';
+		let authorId = post?.author?.id?.split('/').pop() || '';
 		if (liked)
 			return;
-		let authorUser = await NodeManager.getAuthor(user?.id || ``)
+		let authorUser = await NodeClient.getAuthor(user?.id || ``)
 		if (authorUser) {
-			await NodeManager.createLike(authorId, post, authorUser);
+			await NodeClient.createLike(authorId, post, authorUser);
 			setLiked(true)
 		}
 		
 	}
 
 	const onSubmit = async (data:any) => {
-		let authorId = post.author.id.split('/').pop() || '';
-		let postId = post.id.split('/').pop() || '';
-		let authorUser = await NodeManager.getAuthor(user?.id || ``)
+		let authorId = post?.author?.id?.split('/').pop() || '';
+		let postId = post.id?.split('/').pop() || '';
+		let authorUser = await NodeClient.getAuthor(user?.id || ``)
 		
 		if (authorUser) {
 			let comment:CommentI = {
@@ -71,8 +71,8 @@ const Post: React.FC<PostPr> = ({post, comments}) => {
 			published: new Date().toISOString(),
 			author:authorUser
 		}
-		await NodeManager.createComment(authorId, postId, comment);
-		let link = `/authors/${post.author.id.split('/').pop()}/posts/${post.id.split('/').pop()}`;
+		await NodeClient.createComment(authorId, postId, comment);
+		let link = `/authors/${post?.author?.id?.split('/').pop()}/posts/${post.id?.split('/').pop()}`;
 		await router.push(link);
 		}
 		
@@ -82,16 +82,16 @@ const Post: React.FC<PostPr> = ({post, comments}) => {
 	
 		return (<div >
 			<div className="flex flex-col border border-gray-100 shadow-sm rounded-sm mb-4"> 
-				<div className="flex flex-row justify-between items-center pt-4 px-5"><Link href={`/authors/${post.author.id.split('/').slice(-1)}/posts/${post.id.split('/').slice(-1)}`}><h2 className='text-base hover:underline text-gray-700 font-semibold'>{post.title}</h2></Link>
+				<div className="flex flex-row justify-between items-center pt-4 px-5"><Link href={`/authors/${post?.author?.id?.split('/').slice(-1)}/posts/${post?.id?.split('/').slice(-1)}`}><h2 className='text-base hover:underline text-gray-700 font-semibold'>{post.title}</h2></Link>
 					<div>
-					{post.author.id.includes(user?.id || '') && <Menu as='div' className='relative'>
+					{post?.author?.id?.includes(user?.id || '') && <Menu as='div' className='relative'>
 						<Menu.Button>
 					<EllipsisHorizontalIcon className='w-7 h-7 text-gray-700 cursor-pointer' />
 						</Menu.Button>
 						<Menu.Items className={'absolute right-0 mt-0 w-56 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none'}>
 							<Menu.Item>
 								{({ active }) => (
-									<Link className={`block px-4 py-2 text-sm text-gray-700 ${active ? 'bg-gray-100' : ''}`} href={`/authors/${user?.id || ''}/posts/${post.id.split('/').slice(-1)}/edit`}>
+									<Link className={`block px-4 py-2 text-sm text-gray-700 ${active ? 'bg-gray-100' : ''}`} href={`/authors/${user?.id || ''}/posts/${post?.id?.split('/').slice(-1)}/edit`}>
 										Edit
 									</Link>
 								)}
@@ -100,9 +100,9 @@ const Post: React.FC<PostPr> = ({post, comments}) => {
 								{({ active }) => (
 									<Link onClick={
 										async () => {
-											let postId = post.id.split('/').pop() 
-											let authorId = post.author.id.split('/').pop()
-											await NodeManager.deletePost(authorId || '', postId || '');
+											let postId = post?.id?.split('/').pop() 
+											let authorId = post?.author?.id?.split('/').pop()
+											await NodeClient.deletePost(authorId || '', postId || '');
 											await router.reload();
 										}	
 									} className={`block px-4 py-2 text-sm text-gray-700 ${active ? 'bg-gray-100' : ''}`} href="#">
@@ -114,7 +114,7 @@ const Post: React.FC<PostPr> = ({post, comments}) => {
 					</Menu>}
 					</div>
 				</div>
-				<div className={`my-3 border-t border-b border-gray-100 ${!post.contentType.includes('image')? 'p-5':''}`}>
+				<div className={`my-3 border-t border-b border-gray-100 ${!post?.contentType?.includes('image')? 'p-5':''}`}>
 					<>{post.contentType === 'text/markdown' && 
 					<Markdown
 					options={{
@@ -148,7 +148,7 @@ const Post: React.FC<PostPr> = ({post, comments}) => {
 							hr: { component: 'hr', props: { className: 'border-gray-200' } },
 						}
 					}}
-					>{post.content}</Markdown>
+					>{post?.content || ''}</Markdown>
 					}
 					{post.contentType === 'text/plain' && <p>{post.content}</p>}
 					{post.contentType === 'image/*' && <img className='object-cover w-full h-full' src={post.content} alt={post.title} />}
@@ -169,25 +169,25 @@ const Post: React.FC<PostPr> = ({post, comments}) => {
 				<Tooltip content='Copy Link'>
 				<Link2 className='h-5 w-5 text-gray-400 hover:text-gray-500 cursor-pointer'  onClick={() => {
 					navigator.clipboard.writeText(
-						`${window.location.protocol}//${window.location.host}/authors/${post.author.id.split('/').pop()}/posts/${post.id.split('/').pop()}`
+						`${window.location.protocol}//${window.location.host}/authors/${post?.author?.id?.split('/').pop()}/posts/${post?.id?.split('/').pop()}`
 					);
 				}}/>
 				</Tooltip>
 				</span>
 				</div>
 				<p className='px-6'>{
-					post.categories.map((category, index) => {
-						let comma = index === post.categories.length - 1 ? '' : ', ';
+					typeof post?.categories === 'string'? post.categories : post?.categories?.map((category, index) => {
+						let comma = index === post?.categories?.length || 1 - 1 ? '' : ', ';
 						return (<span key={index} className='text-gray-400 text-sm'>{category}{comma} </span>);
 					})}
 					</p>
 					<div className='flex flex-row justify-between items-center mb-2 px-6'>
 				<Link href={post.source || '#'} className='text-blue-500 hover:underline text-sm'>source</Link>
-				<Link className={'text-gray-500 font-medium text-sm mt-1'} href={post.author.url || '/authors/'+ post.author.id}>Posted By {post.author.displayName}</Link>
+				<Link className={'text-gray-500 font-medium text-sm mt-1'} href={post?.author?.url || '/authors/'+ post?.author?.id}>Posted By {post?.author?.displayName}</Link>
 				</div>
 				<div className='px-6 py-2 flex flex-row items-center justify-between text-gray-400 border-t border-gray-200 text-sm'>
 					<span>{comments ? comments.length: post.count} comments</span>
-					{!comments && <Link href={`/authors/${post.author.id.split('/').pop()}/posts/${post.id.split('/').pop()}`}>View all comments</Link>}
+					{!comments && <Link href={`/authors/${post?.author?.id?.split('/').pop()}/posts/${post?.id?.split('/').pop()}`}>View all comments</Link>}
 					
 				</div>
 				<div className=' border-t border-gray-200'>

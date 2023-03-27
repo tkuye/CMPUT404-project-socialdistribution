@@ -1,5 +1,5 @@
 import API from "./api";
-import {Author, CommentListItem, ListItem, Post, Comment, Like, InboxListItem} from "../index";
+import {Author, CommentListItem, ListItem, Post, Comment, Like, InboxListItem, Activity} from "../index";
 
 
 class NodeManager  {
@@ -60,11 +60,13 @@ class NodeManager  {
     public async  getAuthors(page:number = 0, size:number = 25, nodeId:string = 'all', query=""):Promise<ListItem<Author>> {
         
         if (nodeId === 'all') {
+            
             let authors: Author[] = [];
             for (const node of Object.values(this.nodes)) {
                 
                 const results = await node.getAuthors(page, size, query);
-                
+
+                if (results.items)
                 authors = authors.concat(results.items);
             }
             return {
@@ -90,6 +92,7 @@ class NodeManager  {
             let authors: Author[] = [];
             for (const node of Object.values(this.nodes)) {
                 const results = await node.getFollowers(authorId);
+                if (results.items)
                 authors = authors.concat(results.items);
             }
             return {
@@ -181,11 +184,12 @@ class NodeManager  {
         }
     }
 
-    public async getPosts(authorId:string, page:number = 0, size:number = 25, nodeId:string = 'all'): Promise<ListItem<Post>> {
+    public async getPosts(authorId:string, nodeId:string = 'all'): Promise<ListItem<Post>> {
         if (nodeId === 'all') {
             let posts: Post[] = [];
             for (const node of Object.values(this.nodes)) {
-                const results = await node.getPosts(authorId, page, size);
+                const results = await node.getPosts(authorId);
+                if (results.items)
                 posts = posts.concat(results.items);
             }
             return {
@@ -193,7 +197,8 @@ class NodeManager  {
                 items: posts
             }
         } else {
-            return await this.nodes[nodeId].getPosts(authorId, page, size);
+            
+            return await this.nodes[nodeId].getPosts(authorId);
         }
     }
 
@@ -232,9 +237,13 @@ class NodeManager  {
             for (const node of Object.values(this.nodes)) {
                 const results = await node.getComments(authorId, postId, page, size);
                 
+                if (results.post)
                 post = results.post;
+
+                if (results.id)
                 id = results.id;
                 
+                if (results.comments)
                 comments = comments.concat(results.comments);
             }
             return {
@@ -282,6 +291,8 @@ class NodeManager  {
             let likes: Like[] = [];
             for (const node of Object.values(this.nodes)) {
                 const results = await node.getLiked(authorId);
+
+                if (results.items)
                 likes = likes.concat(results.items);
             }
             return {
@@ -291,6 +302,13 @@ class NodeManager  {
         } else {
             return await this.nodes[nodeId].getLiked(authorId);
         }
+    }
+
+    public async sendToInbox(authorId: string, inboxItem: Activity): Promise<void> {
+        for (const node of Object.values(this.nodes)) {
+            return await node.sendToInbox(authorId, inboxItem);
+        }
+
     }
 
     

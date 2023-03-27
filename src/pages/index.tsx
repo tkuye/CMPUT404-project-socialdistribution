@@ -5,7 +5,7 @@ import Sidebar from '@/components/Sidebar';
 import Head from 'next/head';
 import { GetServerSideProps } from 'next';
 import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
-import NodeManager from '@/nodes';
+import {NodeManager} from '@/nodes';
 import { Follow, InboxListItem, Post, Comment, Like } from '@/index';
 import CommentInbox from '@/components/inbox/CommentInbox';
 import FollowInbox from '@/components/inbox/FollowInbox';
@@ -28,9 +28,9 @@ const Stream: React.FC<streamProps> = ({inbox}) => {
 		<div className='flex flex-1 flex-col overflow-y-auto w-full py-12'>
 			
 		<div className='w-full mx-auto bg-white px-6 max-w-4xl space-y-2'>
-			{inbox.items.map((item) => {
+			{inbox.items && inbox.items.map((item) => {
 				
-				switch (item.type.toLowerCase()) {
+				switch (item.type && item.type.toLowerCase()) {
 					case 'post':
 						item = item as Post;
 						return <Post post={item} key={item.id} />;
@@ -46,7 +46,7 @@ const Stream: React.FC<streamProps> = ({inbox}) => {
 				}
 			})}
 		</div>
-		{
+		{inbox.items &&
 			inbox.items.length === 0 && (
 				<div className='w-full mx-auto bg-white px-6 max-w-4xl'>
 					<div className='flex flex-col items-center justify-center h-full'>
@@ -89,12 +89,16 @@ export const getServerSideProps:GetServerSideProps = async (context) => {
 	  }
  
 	let inbox = await NodeManager.getInbox(user.id)
-	
+	if (!inbox.items) {
+		inbox.items = [];
+	}
 	let inboxItems = inbox.items.map(async (item) => {
 		try {
-			if (item.type.toLowerCase() === 'post') {
+			
+			if (item.type && item.type.toLowerCase() === 'post') {
 			item = item as Post;
-			let url = item.id.split('/')
+			if (item.id) {
+				let url = item.id.split('/')
 			let id = url[url.length - 1]
 			let authorId = url[url.length - 3] 
 			let it = await NodeManager.getPost(authorId, id);
@@ -103,11 +107,15 @@ export const getServerSideProps:GetServerSideProps = async (context) => {
 				return item;
 			}
 			return it;
+			} else {
+				return item;
+			}
+
 		} else {
 			return item;
 		}
 		}	 catch (error) {
-			console.log(error)
+			
 			return item;
 		}
 		

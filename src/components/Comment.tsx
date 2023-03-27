@@ -2,7 +2,7 @@ import React, {useEffect} from 'react'
 import {Comment as CommentProps} from '@/index'
 import Link from 'next/link'
 import { ThumbsUp } from 'react-feather'
-import NodeManager from '@/nodes'
+import {NodeClient} from '@/nodes'
 import { useUser } from '@supabase/auth-helpers-react'
 const Comment: React.FC<CommentProps> = ({
     id,
@@ -16,18 +16,18 @@ const Comment: React.FC<CommentProps> = ({
 
         useEffect(() => {
             if (!user) return
-            let authorId  = author.id.split('/').pop() || ''
+            let authorId  = author?.id?.split('/').pop() || ''
             let commentId = id?.split('/').pop() || ''
-            NodeManager.isCommentLiked(commentId, user.id).then((liked) => {
+            NodeClient.isCommentLiked(commentId, user.id).then((liked) => {
                 setCommentLiked(liked)
             })
         }, [user])
         const likeComment = async () => {
             if (!user) return
-            let userAuthor = await NodeManager.getAuthor(user.id)
+            let userAuthor = await NodeClient.getAuthor(user.id)
             if (!userAuthor) return
-            let authorId  = author.id.split('/').pop() || ''
-            await NodeManager.createCommentLike(authorId, {
+            let authorId  = author?.id?.split('/').pop() || ''
+            await NodeClient.createCommentLike(authorId, {
                 comment,
                 id,
                 contentType: 'text/plain',
@@ -42,13 +42,13 @@ const Comment: React.FC<CommentProps> = ({
         <div className="flex items-center justify-between">
             <div className="flex items-center">
                 <div className="flex-shrink-0">
-                    <img className="h-10 w-10 rounded-full" src={author.profileImage} alt=""/>
+                    <img className="h-10 w-10 rounded-full" src={author?.profileImage} alt="Author Profile Image"/>
                 </div>
                 <div className="ml-4">
                     <Link className="text-sm font-medium text-gray-800 hover:underline" href={
-                        '/authors/' + author.id.split('/').pop() || ''
+                        '/authors/' + author?.id?.split('/').pop() || ''
                     }>
-                        {author.displayName}
+                        {author?.displayName || ''}
                     </Link>
                      <div className="flex-shrink-0 flex text-sm text-gray-600">
                {comment}
