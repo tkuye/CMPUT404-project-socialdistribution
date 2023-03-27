@@ -129,7 +129,7 @@ const Page: NextPage<Props> = ({author:{id, displayName, github, profileImage}, 
 					{author?.displayName || 'Your'} Followers
                   </Dialog.Title>
 				 	<div className="space-y-2">{followers.map((follower) => {
-						return <ProfilePreview author={follower} key={follower.id}/>
+						return <ProfilePreview author={follower} key={follower.id} closeFunction={closeModal}/>
 					})}
 					</div>
 					{followers.length === 0 && <div className='text-gray-500'>No followers found.</div>}

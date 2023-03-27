@@ -39,21 +39,12 @@ class API {
 
     public async isPostLiked(postId:string, authorId:string):Promise<boolean> {
         try {
-            const result = await this.axiosInstance.get<ListItem<Like>>(`/authors/${authorId}/liked`, {
+            const result = await this.axiosInstance.get<boolean>(`/authors/${authorId}/liked`, {
                 params: {
                     postId
                 }
             });
-        
-            const likes = result.data.items;
-            if (likes === undefined) {
-                return false;
-            }
-            for (const like of likes) {
-                if (like.object?.includes(postId)) {
-                    return true;
-                }
-            }
+            return result.data;
             return false;
         }
         catch (e) {
@@ -64,23 +55,12 @@ class API {
 
     public async isCommentLiked(commentId:string, authorId:string):Promise<boolean> {
         try {
-            const result = await this.axiosInstance.get<ListItem<Like>>(`/authors/${authorId}/liked`, {
+            const result = await this.axiosInstance.get<boolean>(`/authors/${authorId}/liked`, {
                 params: {
                     commentId
                 }
             });
-            if (result.data.items === undefined) {
-                return false;
-            }
-            const likes = result.data.items;
-            
-            for (const like of likes) {
-
-                if (like.object && like.object.includes(commentId)) {
-                    return true;
-                }
-            }
-            return false;
+            return result.data
         }
         catch (e) {
           
@@ -369,7 +349,8 @@ class API {
         
         try {
             const results = await this.axiosInstance.get<ListItem<Like>>(`/authors/${authorId}/liked`);
-        return results.data;
+            console.log(results.data);
+            return results.data;
         } catch (e) {
             return {
                 type: "likes",

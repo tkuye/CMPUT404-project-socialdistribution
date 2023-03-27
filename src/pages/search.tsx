@@ -39,7 +39,7 @@ const SearchPage: React.FC<searchProps> = ({}) => {
 	
 			<div className='flex flex-col h-screen'>
 			<Head>
-				<title>Stream</title>
+				<title>Search</title>
 			</Head>
 	<div className='flex flex-1 overflow-y-hidden'>
 			<Sidebar/>

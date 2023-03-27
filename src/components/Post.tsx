@@ -38,9 +38,8 @@ const Post: React.FC<PostPr> = ({post, comments}) => {
 		if (!user)
 			return;
 		NodeClient.isPostLiked(postId || '', user?.id || ``).then((res) => {
-			if (res) {
-				setLiked(true)
-			}
+			console.log(res, "MOOO")
+			setLiked(res)
 		})
 		
 
@@ -183,7 +182,7 @@ const Post: React.FC<PostPr> = ({post, comments}) => {
 					</p>
 					<div className='flex flex-row justify-between items-center mb-2 px-6'>
 				<Link href={post.source || '#'} className='text-blue-500 hover:underline text-sm'>source</Link>
-				<Link className={'text-gray-500 font-medium text-sm mt-1'} href={post?.author?.url || '/authors/'+ post?.author?.id}>Posted By {post?.author?.displayName}</Link>
+				<Link className={'text-gray-500 font-medium text-sm mt-1'} href={'/authors/'+ post?.author?.id?.split('/').pop()}>Posted By {post?.author?.displayName}</Link>
 				</div>
 				<div className='px-6 py-2 flex flex-row items-center justify-between text-gray-400 border-t border-gray-200 text-sm'>
 					<span>{comments ? comments.length: post.count} comments</span>

@@ -10,6 +10,7 @@ export default async function handler(
         let {postId, author_id, commentId} = req.query;
         if (postId) {
             const results = await NodeManager.isPostLiked(postId as string, author_id as string);
+            
             return res.status(200).json(results);
         }
         else if (commentId) {
