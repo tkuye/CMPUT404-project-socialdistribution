@@ -57,11 +57,12 @@ class NodeManager  {
         throw new Error("No local node found");
     }
 
-    public async getAuthors(page:number = 0, size:number = 25, nodeId:string = 'all', query=""):Promise<ListItem<Author>> {
-   
+    public async  getAuthors(page:number = 0, size:number = 25, nodeId:string = 'all', query=""):Promise<ListItem<Author>> {
+        
         if (nodeId === 'all') {
             let authors: Author[] = [];
             for (const node of Object.values(this.nodes)) {
+                
                 const results = await node.getAuthors(page, size, query);
                 
                 authors = authors.concat(results.items);

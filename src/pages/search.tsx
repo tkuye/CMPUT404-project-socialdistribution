@@ -11,6 +11,7 @@ import NodeManager from '@/nodes';
 import {useForm} from 'react-hook-form'
 import { Author } from '..';
 import ProfilePreview from '@/components/ProfilePreview';
+import axios from 'axios';
 interface searchProps {
 
 }
@@ -23,8 +24,13 @@ const SearchPage: React.FC<searchProps> = ({}) => {
 	const {register, handleSubmit} = useForm()
 
 	const searchSubmit = async (data:any) => {
-		const searchData = await NodeManager.getAuthors(undefined, undefined, undefined, data.search);
-		let searchItems = searchData.items
+		const searchData = await axios.get('/api/authors', {
+			params: {
+				query:data.search
+			}
+		}
+		);
+		let searchItems = searchData.data.items
 		setSearches(searchItems)
 		setSearch(true)
 	}
