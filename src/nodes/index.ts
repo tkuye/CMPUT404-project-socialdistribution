@@ -5,23 +5,13 @@ const LocalNode = new API(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8
     auth:{
         username: process.env.NEXT_PUBLIC_FE_UNAME || "credential env failure",
         password: process.env.NEXT_PUBLIC_FE_PW || "credential env failure"
-    },
-    headers:{
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
     }
-    
 }, 'local');
 
 const Team7 = new API('https://sd7-api.herokuapp.com/api', {
     auth:{
         username: process.env.NEXT_PUBLIC_T7_UNAME || "credential env failure",
         password: process.env.NEXT_PUBLIC_T7_PW || "credential env failure"
-    }, 
-    headers:{
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Access-Control-Allow-Credentials':true
     }
 }, 'remote');
 
@@ -29,20 +19,11 @@ const Team17 = new API('https://social-distribution-w23-t17.herokuapp.com', {
     auth:{
         username: process.env.NEXT_PUBLIC_T17_UNAME || "credential env failure",
         password: process.env.NEXT_PUBLIC_T17_PW || "credential env failure"
-    }, 
-    headers:{
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Access-Control-Allow-Credentials':true
     }
 }, 'remote');
 
 const Team12 = new API('https://cmput404-project-data.herokuapp.com/server', {
-    headers:{
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Access-Control-Allow-Credentials':true
-    }
+
 }, 'remote');
 
 const nodeManager = new NodeManager({
