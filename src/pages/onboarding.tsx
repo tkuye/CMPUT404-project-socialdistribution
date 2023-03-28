@@ -31,7 +31,7 @@ const Create: React.FC<createProps> = ({}) => {
         data.github = 'https://github.com/' + data.github
         delete data.profile
         data.host = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-        data.url = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/service' + '/authors/' + user?.id	// Changed urls here to reference the backend since that's really what they should do, hopefully this doesn't break the frontend.
+        data.url = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/service') + '/authors/' + user?.id	// Changed urls here to reference the backend since that's really what they should do, hopefully this doesn't break the frontend.
 		data.type = 'author'
 		try {
             await NodeClient.createAuthor(data);

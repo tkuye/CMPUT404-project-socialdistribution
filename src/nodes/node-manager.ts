@@ -89,6 +89,7 @@ class NodeManager  {
         throw new Error("No local node found");
     }
 
+    // FIXME: Why not use api.getFollowers() instead? it gets all of an author's followers without having to loop like this.
     public async getFollowers(authorId: string, nodeId:string = 'all'): Promise<ListItem<Author>> {
         if (nodeId === 'all') {
             let authors: Author[] = [];
@@ -239,14 +240,15 @@ class NodeManager  {
             for (const node of Object.values(this.nodes)) {
                 const results = await node.getComments(authorId, postId, page, size);
                 
-                if (results.post)
-                post = results.post;
-
-                if (results.id)
-                id = results.id;
-                
-                if (results.comments)
-                comments = comments.concat(results.comments);
+                if (results.post) {
+                    post = results.post;
+                }
+                if (results.id) {
+                    id = results.id;
+                }
+                if (results.comments) {
+                    comments = comments.concat(results.comments);
+                }
             }
             return {
                 type: "comments",
@@ -294,8 +296,9 @@ class NodeManager  {
             for (const node of Object.values(this.nodes)) {
                 const results = await node.getLiked(authorId);
 
-                if (results.items)
-                likes = likes.concat(results.items);
+                if (results.items) {
+                    likes = likes.concat(results.items);
+                }
             }
             return {
                 type: "likes",
