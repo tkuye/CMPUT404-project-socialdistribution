@@ -17,6 +17,7 @@ import Button from './Button';
 import Comment from './Comment';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { useUserAuthor } from '@/contexts/userAuthor';
+
 interface PostPr {
 	post: PostProps
 	comments?: CommentI[]

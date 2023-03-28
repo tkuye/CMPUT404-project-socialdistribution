@@ -77,7 +77,6 @@ class NodeManager  {
                     return this.authorCache[authorId];
                 }
                 const author = await node.getAuthor(authorId);
-
                 if (author) {
                     if (author.id)
                     author.url = author.id; 
@@ -93,7 +92,7 @@ class NodeManager  {
     public async createAuthor(author:Author) {
         for (const node of Object.values(this.nodes)) {
             if (node.getNodeType() === "local") {
-                return await node.createAuthor(author);
+                await node.createAuthor(author);
             }
             // add to cache
             if (author.id) {
@@ -102,7 +101,7 @@ class NodeManager  {
                 this.authorCache[authorId] = author;
             }
         }
-        throw new Error("No local node found");
+        return;
     }
 
     public async  getAuthors(page:number = 0, size:number = 25, nodeId:string = 'all', query=""):Promise<ListItem<Author>> {
@@ -129,7 +128,7 @@ class NodeManager  {
     public async updateAuthor(authorId: string, data:Author): Promise<Author | null> {
         for (const node of Object.values(this.nodes)) {
             if (node.getNodeType() === "local") {
-                return await node.updateAuthor(authorId, data);
+                await node.updateAuthor(authorId, data);
             }
         }
 
@@ -137,9 +136,12 @@ class NodeManager  {
         if (this.authorCache[authorId]) {
             this.authorCache[authorId] = {...this.authorCache[authorId], ...data};
         }
+
+        return this.authorCache[authorId];
         throw new Error("No local node found");
     }
 
+    // FIXME: Why not use api.getFollowers() instead? it gets all of an author's followers without having to loop like this.
     public async getFollowers(authorId: string, nodeId:string = 'all'): Promise<ListItem<Author>> {
         if (nodeId === 'all') {
             let authors: Author[] = [];
@@ -337,14 +339,15 @@ class NodeManager  {
             for (const node of Object.values(this.nodes)) {
                 const results = await node.getComments(authorId, postId, page, size);
                 
-                if (results.post)
-                post = results.post;
-
-                if (results.id)
-                id = results.id;
-                
-                if (results.comments)
-                comments = comments.concat(results.comments);
+                if (results.post) {
+                    post = results.post;
+                }
+                if (results.id) {
+                    id = results.id;
+                }
+                if (results.comments) {
+                    comments = comments.concat(results.comments);
+                }
             }
             return {
                 type: "comments",
@@ -362,7 +365,19 @@ class NodeManager  {
             let author = this.authorCache[authorId];
             let nodeId = author?.id 
             nodeId = getURL(nodeId || "");
-            console.log(nodeId)
+            
+
+            if (nodeId) {
+                return await this.nodes[nodeId].createComment(authorId, postId, comment);
+            }
+        } else {
+            let author = await this.getAuthor(authorId);
+            if (author) {
+                this.authorCache[authorId] = author;
+            }
+            let nodeId = author?.id 
+            nodeId = getURL(nodeId || "");
+
             if (nodeId) {
                 return await this.nodes[nodeId].createComment(authorId, postId, comment);
             }

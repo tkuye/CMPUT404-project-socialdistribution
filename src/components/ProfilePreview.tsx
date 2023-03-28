@@ -16,7 +16,10 @@ const ProfilePreview: React.FC<ProfilePreviewProps> = ({author, closeFunction}) 
             const id = author?.id?.split('/').pop()
             router.push(`/authors/${id}`)
         } else {
-            router.push(`/authors/${author.id}`)
+            router.push(`/authors/${author.id}`,  undefined, { shallow: true })
+        }
+        if (closeFunction) {
+            closeFunction()
         }
         if (closeFunction) {
             closeFunction()

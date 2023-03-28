@@ -89,6 +89,7 @@ class NodeClient  {
     }
 
     public async createComment(authorId: string, postId: string, comment: Comment): Promise<Comment | null> {
+        
         return await this.APIInstance.createComment(authorId, postId, comment);
     }
 

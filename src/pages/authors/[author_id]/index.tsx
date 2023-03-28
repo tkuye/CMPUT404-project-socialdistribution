@@ -14,7 +14,7 @@ import {NodeManager, NodeClient} from '@/nodes';
 import { Author, Post as PostType } from '@/index';
 import { Transition, Dialog } from '@headlessui/react';
 import ProfilePreview from '@/components/ProfilePreview';
-import { dehydrate, QueryClient, useQuery, useMutation } from '@tanstack/react-query'
+import { dehydrate, QueryClient, useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { UserAuthorContextProvider } from '@/contexts/userAuthor';
 import useAuthor from '@/hooks/useAuthor';
 
@@ -32,7 +32,7 @@ const Page: NextPage<Props> = ({authorId, userId}) => {
 	
 	const [isModalOpen, setIsModalOpen] = useState(false)
 	const [followStatusState, setFollowStatusState] = useState<string | undefined>(undefined)
-	
+	const queryClient = useQueryClient();
   	const user = useUser()
 	const userAuthor = useAuthor(userId)
 	const {
@@ -48,9 +48,10 @@ const Page: NextPage<Props> = ({authorId, userId}) => {
 
 	const {
 		data:followStatus
-	} = useQuery({ queryKey: ['followStatus', authorId], queryFn: async () => await NodeClient.checkFollowerStatus(userId, authorId), 
+	} = useQuery({ queryKey: ['followStatus', authorId], queryFn: async () => await NodeClient.checkFollowerStatus(authorId, userId), 
 	enabled: userId !== authorId,
 	onSuccess: (data) => {
+		console.log(data)
 		setFollowStatusState(data)
 	},
 	
@@ -63,7 +64,10 @@ const Page: NextPage<Props> = ({authorId, userId}) => {
 		await NodeClient.sendFollowRequest(authorTo, authorFrom)
 	}, {
 		onSuccess: (data, {status}) => {
+			
 			setFollowStatusState(status)
+			queryClient.invalidateQueries(['followStatus', authorId])
+			queryClient.invalidateQueries(['followers', authorId])
 		}
 	})
 
@@ -72,6 +76,8 @@ const Page: NextPage<Props> = ({authorId, userId}) => {
 	},{
 		onSuccess: (data, {status}) => {
 			setFollowStatusState(status)	
+			queryClient.invalidateQueries(['followStatus', authorId])
+			queryClient.invalidateQueries(['followers', authorId])
 		}
 	})
 
@@ -79,6 +85,7 @@ const Page: NextPage<Props> = ({authorId, userId}) => {
 	const closeModal = () => {
 		setIsModalOpen(false)
 	}
+
 
 
 		return (

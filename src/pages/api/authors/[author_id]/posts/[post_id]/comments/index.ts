@@ -31,6 +31,7 @@ export default async function handler(
     if (req.method === 'POST') {
             try {
             let {author_id, post_id} = req.query;
+            
             const results = await NodeManager.createComment(author_id as string, post_id as string, req.body);
             
             return res.status(200).json(results);

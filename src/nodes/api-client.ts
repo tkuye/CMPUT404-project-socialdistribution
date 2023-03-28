@@ -129,13 +129,13 @@ class API {
         
         let actor = await this.getAuthor(foreignAuthorId);
         let object = await this.getAuthor(authorId);
+
         if (actor && object) {
         await this.sendToInbox(foreignAuthorId, {
                 type: 'follow',
                 summary: `${object.displayName} accepted your follow request`,
                 actor: actor,
                 object: object
-            
         });
     }
     } catch (e) {
@@ -294,11 +294,8 @@ class API {
     }
 
     public async createComment(authorId:string, postId: string, comment: Comment): Promise<Comment | null> {
-
-
         try {
             const result = await this.axiosInstance.post<Comment>(`/authors/${authorId}/posts/${postId}/comments`, comment);
-            await this.sendToInbox(authorId || '', comment);
             return result.data;
         }
         catch (e) {
