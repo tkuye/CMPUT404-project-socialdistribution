@@ -7,10 +7,11 @@ import Head from 'next/head'
 import Sidebar from '@/components/Sidebar'
 import { GetServerSideProps } from 'next';
 import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
-import NodeManager from '@/nodes';
+import {NodeManager, NodeClient} from '@/nodes';
 import {useForm} from 'react-hook-form'
 import { Author } from '..';
 import ProfilePreview from '@/components/ProfilePreview';
+import { QueryClient, useQuery } from '@tanstack/react-query';
 interface searchProps {
 
 }
@@ -20,29 +21,38 @@ const SearchPage: React.FC<searchProps> = ({}) => {
 	const [isSearch, setSearch] = React.useState(false)
 	const user = useUser()
 	const [searches, setSearches] = React.useState<Author[]>([])
-	const {register, handleSubmit} = useForm()
+	const form = useForm()
+
+	const searchQuery = useQuery({ queryKey: ['search'], queryFn: async () => await NodeClient.getAuthors()})
 
 	const searchSubmit = async (data:any) => {
-		const searchData = await NodeManager.getAuthors(undefined, undefined, undefined, data.search);
-		let searchItems = searchData.items
-		setSearches(searchItems)
-		setSearch(true)
+		
+		const searchItems = searchQuery?.data?.items?.filter((item:Author) => item?.displayName?.toLowerCase().includes(data.search.toLowerCase()))
+
+		if (searchItems) {
+			setSearches(searchItems)
+			
+		}
+		
 	}
 
 
-		return (<div className='mb-8 '>
+		return (<div className=''>
 	
 			<div className='flex flex-col h-screen'>
 			<Head>
-				<title>Stream</title>
+				<title>Search</title>
 			</Head>
-	<div className='flex flex-1 overflow-hidden'>
+	<div className='flex flex-1 overflow-y-hidden'>
 			<Sidebar/>
 	<div className='flex flex-1 flex-col overflow-y-auto w-full py-12'>
 		<div className='w-full mx-auto bg-white px-6 max-w-5xl'> 
 	<h2 className='text-xl font-semibold mb-5'>Search</h2>
-	<form onSubmit={handleSubmit(searchSubmit)}>
-		<Search id='search' register={register} placeholder='Search for a user...' />
+	<form onSubmit={form.handleSubmit(searchSubmit)}>
+		<Search id='search' register={form.register} placeholder='Search for a user...' onClick={() => {
+			form.handleSubmit(searchSubmit)()
+		}
+		}/>
 		</form>
 		</div>
 		<div className='w-full mx-auto bg-white px-6 max-w-5xl space-y-1 mt-3'>
@@ -60,9 +70,15 @@ const SearchPage: React.FC<searchProps> = ({}) => {
 }
 export default SearchPage;
 
+export const revalidate = 60
 export const getServerSideProps:GetServerSideProps = async (context) => {
 
 	const supabaseServerClient = createServerSupabaseClient(context)
+
+	const queryClient = new QueryClient()
+
+	await queryClient.prefetchQuery({ queryKey: ['search'], queryFn: async () => await NodeManager.getAuthors()})
+
 	  const {
 		data: { user },
 	  } = await supabaseServerClient.auth.getUser();
@@ -86,15 +102,6 @@ export const getServerSideProps:GetServerSideProps = async (context) => {
 	  }
 
 	 
-	  if (!await NodeManager.checkAuthorExists(user.id))
-		return {
-			redirect: {
-				destination: '/onboarding',
-				permanent: false
-			}
-		}
-	  
-
 	return {
 	  props: {}
 	}

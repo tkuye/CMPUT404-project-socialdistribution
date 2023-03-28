@@ -5,18 +5,19 @@ import Sidebar from '@/components/Sidebar';
 import Head from 'next/head';
 import { GetServerSideProps } from 'next';
 import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
-import NodeManager from '@/nodes';
+import {NodeClient, NodeManager} from '@/nodes';
 import { Follow, InboxListItem, Post, Comment, Like } from '@/index';
 import CommentInbox from '@/components/inbox/CommentInbox';
 import FollowInbox from '@/components/inbox/FollowInbox';
 import LikeInbox from '@/components/inbox/LikeInbox';
+import { dehydrate, QueryClient, useQuery } from '@tanstack/react-query'
 
 interface streamProps {
-	inbox: InboxListItem
+	authorId: string;
 }
 
-const Stream: React.FC<streamProps> = ({inbox}) => {
-
+const Stream: React.FC<streamProps> = ({authorId}) => {
+	const { data } = useQuery({ queryKey: ['inbox'], queryFn:async () =>  await NodeClient.getInbox(authorId)})
 		return (
 			
 			<div className='flex flex-col h-screen'>
@@ -28,9 +29,9 @@ const Stream: React.FC<streamProps> = ({inbox}) => {
 		<div className='flex flex-1 flex-col overflow-y-auto w-full py-12'>
 			
 		<div className='w-full mx-auto bg-white px-6 max-w-4xl space-y-2'>
-			{inbox.items.map((item) => {
+			{data?.items && data.items.map((item) => {
 				
-				switch (item.type.toLowerCase()) {
+				switch (item.type && item.type.toLowerCase()) {
 					case 'post':
 						item = item as Post;
 						return <Post post={item} key={item.id} />;
@@ -46,8 +47,8 @@ const Stream: React.FC<streamProps> = ({inbox}) => {
 				}
 			})}
 		</div>
-		{
-			inbox.items.length === 0 && (
+		{data?.items &&
+			data.items.length === 0 && (
 				<div className='w-full mx-auto bg-white px-6 max-w-4xl'>
 					<div className='flex flex-col items-center justify-center h-full'>
 						<h1 className='text-3xl font-bold text-gray-700 mb-3'>No Activity Yet</h1>
@@ -63,8 +64,10 @@ const Stream: React.FC<streamProps> = ({inbox}) => {
 }
 export default Stream
 
-export const getServerSideProps:GetServerSideProps = async (context) => {
 
+export const revalidate = 60
+export const getServerSideProps:GetServerSideProps = async (context) => {
+	const queryClient = new QueryClient()
 	const supabaseServerClient = createServerSupabaseClient(context)
 	  const {
 		data: { user },
@@ -79,22 +82,25 @@ export const getServerSideProps:GetServerSideProps = async (context) => {
 		}
 	  }
 
-	   if (!await NodeManager.checkAuthorExists(user.id)) {
-		return {
-			redirect: {
-				destination: '/onboarding',
-				permanent: false
-			}
+	  
+	  await queryClient.prefetchQuery(['inbox'], async () => {
+		let inbox = await NodeManager.getInbox(user.id)
+		if (!inbox.items) {
+			inbox.items = [];
 		}
-	  }
- 
-	let inbox = await NodeManager.getInbox(user.id)
-	
+		return inbox;
+	  })
+
+
+	  
+	  /*
 	let inboxItems = inbox.items.map(async (item) => {
 		try {
-			if (item.type.toLowerCase() === 'post') {
+			
+			if (item.type && item.type.toLowerCase() === 'post') {
 			item = item as Post;
-			let url = item.id.split('/')
+			if (item.id) {
+				let url = item.id.split('/')
 			let id = url[url.length - 1]
 			let authorId = url[url.length - 3] 
 			let it = await NodeManager.getPost(authorId, id);
@@ -103,21 +109,25 @@ export const getServerSideProps:GetServerSideProps = async (context) => {
 				return item;
 			}
 			return it;
+			} else {
+				return item;
+			}
+
 		} else {
 			return item;
 		}
 		}	 catch (error) {
-			console.log(error)
+			
 			return item;
 		}
 		
-	})
+	})*/
 
-	inbox.items = await Promise.all(inboxItems)
 	  
 	return {
 	  props: {
-		inbox
+		dehydratedState: dehydrate(queryClient),
+		authorId: user.id
 	  }
 	}
   }

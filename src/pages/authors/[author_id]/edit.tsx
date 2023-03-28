@@ -12,7 +12,7 @@ import { useUser, useSupabaseClient } from '@supabase/auth-helpers-react'
 import { useForm } from "react-hook-form";
 import { GetServerSideProps } from 'next';
 import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
-import NodeManager from '@/nodes';
+import {NodeManager, NodeClient} from '@/nodes';
 import { getBase64 } from '@/utils';
 import { useRouter } from 'next/router';
 
@@ -47,7 +47,7 @@ const Create: React.FC<createProps> = ({displayName, github, profileImage}) => {
         data.github = 'https://github.com/' + data.github
         delete data.profile
         try {
-           let res =  await NodeManager.updateAuthor(user?.id || '', data);
+           let res =  await NodeClient.updateAuthor(user?.id || '', data);
             router.push(`/authors/${user?.id}`)
         } catch (error) {
             console.log(error)

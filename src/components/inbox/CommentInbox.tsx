@@ -11,7 +11,7 @@ const CommentInbox: React.FC<CommentInboxProps> = ({comment}) => {
                <span><Link 
                 className=' text-gray-500 hover:underline'
                href={
-                    `/authors/${comment.author?.id.split('/').pop()}`
+                    `/authors/${comment?.author?.id?.split('/').pop()}`
                }>{comment.author?.displayName}</Link> commented on your post.</span>
             </div>
 
