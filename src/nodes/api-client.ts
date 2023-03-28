@@ -21,7 +21,7 @@ class API {
     public async getAuthors(page:number = 1, size:number = 25, query:string = ''):Promise<ListItem<Author>> {
         
         try {
-            const results = await this.axiosInstance.get<ListItem<Author>>(`/authors/?page=${page}&size=${size}&query=${query}`);
+            const results = await this.axiosInstance.get<ListItem<Author>>(`/authors/`);
             
             if (results.data.items === undefined) {
                 throw new Error("items is undefined");

@@ -8,36 +8,36 @@ class NodeManager  {
         [key: string]: API;
     }
 
-    private authorCache: {
-        [key: string]: Author;
-    }
+    private authorCache: Map<string, Author>;
 
     
 
     constructor(nodes: { [key: string]: API }) {
         this.nodes = nodes;
-        this.authorCache = {};
+        this.authorCache = new Map();
         // add authors to cache
         this.reCacheAuthors();
         
     }
 
      private reCacheAuthors() {
+        let authors = [];
         for (const node of Object.values(this.nodes)) {
-                node.getAuthors().then((authors) => {
-                    if (authors.items) 
-                    for (let author of authors.items) {
-                        if (author.id) {
-                            let authorId = author.id.split("/").pop();
-                            author.url = author.id;
-                            if (authorId)
-                            this.authorCache[authorId] = author;
-                        }
-                    }
-                }).catch((err) => {
-                    console.error(err);
-                });
+            authors.push(node.getAuthors());
         }
+        Promise.all(authors).then((authorLists) => {
+            for (const authorList of authorLists) {
+                if (!authorList.items) continue;
+                for (const author of authorList.items) {
+                    if (author.id) {
+                        let authorId = author.id.split("/").pop();
+                        if (authorId)
+                        this.authorCache.set(authorId, author);
+                    }
+                }
+            }
+        });
+        
     }
 
     public addNode(key:string, api:API): void {
@@ -58,7 +58,7 @@ class NodeManager  {
         for (const node of Object.values(this.nodes)) {
             if (node.getNodeType() === "local") {
                 // check cache first
-                if (this.authorCache[authorId]) {
+                if (this.authorCache.get(authorId)) {
                     return true;
                 }
                 if (await node.getAuthor(authorId)) {
@@ -73,8 +73,8 @@ class NodeManager  {
         if (nodeId === 'all') {
             for (const node of Object.values(this.nodes)) {
                 // check cache first
-                if (this.authorCache[authorId]) {
-                    return this.authorCache[authorId];
+                if (this.authorCache.get(authorId)) {
+                    return this.authorCache.get(authorId) || null;
                 }
                 const author = await node.getAuthor(authorId);
                 if (author) {
@@ -98,14 +98,14 @@ class NodeManager  {
             if (author.id) {
                 let authorId = author.id.split("/").pop();
                 if (authorId)
-                this.authorCache[authorId] = author;
+                this.authorCache.set(authorId, author);
             }
         }
         return;
     }
 
     public async  getAuthors(page:number = 0, size:number = 25, nodeId:string = 'all', query=""):Promise<ListItem<Author>> {
-        console.log('Stop it')
+        
         if (nodeId === 'all') {
             
             let authors: Author[] = [];
@@ -133,11 +133,11 @@ class NodeManager  {
         }
 
         // update cache
-        if (this.authorCache[authorId]) {
-            this.authorCache[authorId] = {...this.authorCache[authorId], ...data};
+        if (this.authorCache.get(authorId)) {
+            this.authorCache.set(authorId, data);
         }
 
-        return this.authorCache[authorId];
+        return this.authorCache.get(authorId) || null;
         throw new Error("No local node found");
     }
 
@@ -205,10 +205,10 @@ class NodeManager  {
 
     public async checkFollowerStatus(authorId: string, foreignAuthorId: string): Promise<string> {
         // check cache first
-        if (this.authorCache[authorId]) {
+        if (this.authorCache.get(authorId)) {
             // get node from author
-            let author = this.authorCache[authorId];
-            if (author.id) {
+            let author = this.authorCache.get(authorId);
+            if (author?.id) {
                 let nodeId = getURL(author.id);
                 let node = this.nodes[nodeId];
                 if (node) {
@@ -241,8 +241,8 @@ class NodeManager  {
     public async getPost(authorId:string, postId: string): Promise<Post | null> {
        // find author in cache
       
-         if (this.authorCache[authorId]) {
-            let author = this.authorCache[authorId];
+         if (this.authorCache.get(authorId)) {
+            let author = this.authorCache.get(authorId);
             let nodeId = author?.id 
             nodeId = getURL(nodeId || "");
                 if (nodeId) {
@@ -252,7 +252,7 @@ class NodeManager  {
          } else {
             let author = await this.getAuthor(authorId);
             if (author) {
-                this.authorCache[authorId] = author;
+                this.authorCache.set(authorId, author);
             }
             let nodeId = author?.id 
             nodeId = getURL(nodeId || "");
@@ -266,9 +266,9 @@ class NodeManager  {
 
     public async getPosts(authorId:string, nodeId:string = 'all'): Promise<ListItem<Post>> {
         // check cache for author
-        if (this.authorCache[authorId]) {
+        if (this.authorCache.get(authorId)) {
 
-            let author = this.authorCache[authorId];
+            let author = this.authorCache.get(authorId);
             let nodeId = author?.id 
             nodeId = getURL(nodeId || "");
            
@@ -324,8 +324,8 @@ class NodeManager  {
     public async getComments(authorId:string, postId: string, page:number = 0, size:number = 25): Promise<CommentListItem> {
 
         // check cache for author
-        if (this.authorCache[authorId]) {
-            let author = this.authorCache[authorId];
+        if (this.authorCache.get(authorId)) {
+            let author = this.authorCache.get(authorId);
             let nodeId = author?.id 
             nodeId = getURL(nodeId || "");
             if (nodeId) {
@@ -361,8 +361,8 @@ class NodeManager  {
 
     public async createComment(authorId: string, postId: string, comment: Comment): Promise<Comment | null> {
         // GET author from cache
-        if (this.authorCache[authorId]) {
-            let author = this.authorCache[authorId];
+        if (this.authorCache.get(authorId)) {
+            let author = this.authorCache.get(authorId);
             let nodeId = author?.id 
             nodeId = getURL(nodeId || "");
             
@@ -373,7 +373,7 @@ class NodeManager  {
         } else {
             let author = await this.getAuthor(authorId);
             if (author) {
-                this.authorCache[authorId] = author;
+                this.authorCache.set(authorId, author);
             }
             let nodeId = author?.id 
             nodeId = getURL(nodeId || "");
@@ -388,8 +388,8 @@ class NodeManager  {
 
     public async createLike(authorId: string, post:Post, authorFrom:Author): Promise<void> {
         // GET author from cache
-        if (this.authorCache[authorId]) {
-            let author = this.authorCache[authorId];
+        if (this.authorCache.get(authorId)) {
+            let author = this.authorCache.get(authorId);
             let nodeId = author?.id 
             nodeId = getURL(nodeId || "");
             if (nodeId) {
@@ -400,8 +400,8 @@ class NodeManager  {
 
     public async createCommentLike(authorId: string, comment:Comment, authorFrom:Author):Promise<void> {
         // GET author from cache
-        if (this.authorCache[authorId]) {
-            let author = this.authorCache[authorId];
+        if (this.authorCache.get(authorId)) {
+            let author = this.authorCache.get(authorId);
             let nodeId = author?.id 
             nodeId = getURL(nodeId || "");
             if (nodeId) {
@@ -430,8 +430,8 @@ class NodeManager  {
 
     public async sendToInbox(authorId: string, inboxItem: Activity): Promise<void> {
        // GET author from cache
-         if (this.authorCache[authorId]) {
-            let author = this.authorCache[authorId];
+         if (this.authorCache.get(authorId)) {
+            let author = this.authorCache.get(authorId);
             let nodeId = author?.id 
             nodeId = getURL(nodeId || "");
             if (nodeId) {
