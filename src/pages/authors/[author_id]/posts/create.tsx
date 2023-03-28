@@ -61,6 +61,7 @@ const Create: React.FC<createProps> = ({authorId}) => {
 			visibility: data.visibility,
 			}
 			let createdPost = await NodeClient.createPost(authorId, post)
+			
 			if (createdPost) {
 				await NodeClient.alertNewPost(authorId, createdPost) 
 			}
@@ -165,15 +166,6 @@ export const getServerSideProps:GetServerSideProps = async (context) => {
 			destination: '/auth',
 			permanent: false
 		  }
-		}
-	  }
-
-	  if (!await NodeManager.checkAuthorExists(user.id)) {
-		return {
-			redirect: {
-				destination: '/onboarding',
-				permanent: false
-			}
 		}
 	  }
 

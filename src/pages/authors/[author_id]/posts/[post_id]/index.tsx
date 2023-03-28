@@ -10,33 +10,46 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
 import { Author, Post as PostType, Comment } from '@/index';
-import {NodeManager} from '@/nodes';
-
+import {NodeManager, NodeClient} from '@/nodes';
+import {useQuery, QueryClient, dehydrate} from '@tanstack/react-query'
+import { UserAuthorContextProvider } from '@/contexts/userAuthor';
+import useAuthor from '@/hooks/useAuthor';
 interface Props {
-	post: PostType,
-	comments: Comment[]
+	authorId:string
+	userId:string
+	postId:string
 }
 
-const Page: NextPage<Props> = ({post, comments}) => {
-
+const Page: NextPage<Props> = ({authorId, postId, userId}) => {
+	let {data:post} = useQuery({queryKey: ['post', postId], queryFn: async () => await NodeClient.getPost(authorId, postId)})
+	let {data:comments} = useQuery({queryKey: ['comments', postId], queryFn: async () => await NodeClient.getComments(authorId, postId)})
+	const userAuthor = useAuthor(userId)
 		return (
+		<UserAuthorContextProvider value={userAuthor}>
 		<div className='flex flex-col h-screen'>
 		<Head>
-			<title>{post.title}</title>
+			<title>{post?.title}</title>
 		</Head>
 		
 		<div className='flex flex-1 overflow-hidden'>
 		<SideBar/>
 		<div className='flex flex-1 flex-col overflow-y-auto w-full py-12'>
             <div className='w-full mx-auto bg-white px-6 max-w-5xl'>
-	        <Post post={post} comments={comments}/>
+				{
+					post && comments && <Post post={post} comments={comments.comments}/>
+				}
             </div>
 			</div>
-		</div></div>);
+		</div>
+		</div>
+		</UserAuthorContextProvider>
+		);
 }
 
+export default Page
+
 export const getServerSideProps:GetServerSideProps = async (context) => {
-	
+
 	const supabaseServerClient = createServerSupabaseClient(context)
 	  const {
 		data: { user },
@@ -51,60 +64,23 @@ export const getServerSideProps:GetServerSideProps = async (context) => {
 		}
 	  }
 
-	  try {
-		let [authorId, postId] = [context.params?.author_id, context.params?.post_id]
 
-        let post = await NodeManager.getPost(authorId as string, postId as string);
-		let comments = await NodeManager.getComments(authorId as string, postId as string)
-		
+	let userId = user.id
+	let  authorId = context.params?.author_id as string
+	let postId = context.params?.post_id as string
 
-		let visibility = post?.visibility;
-		
-		if (visibility === 'PRIVATE') {
-			if (authorId != user.id) {
-				let followStatus = await NodeManager.checkFollowerStatus(authorId as string, user.id);
-				
-				if (followStatus !== 'true_friends') {
-					return {
-						redirect: {
-							destination: '/',
-							permanent: false
-						}
-					}
-				}
-				
-			}
-		}
 
-		
-
-		if (!post) {
-			return {
-				redirect: {
-					destination: '/onboarding',
-					permanent: false
-				}
-			}
-		}
-		return {
-			props: {
-				post: post,
-				comments: comments.comments
-			}
-	}	
-	  }
-	  catch {
-		return {
-			redirect: {
-				destination: '/onboarding',
-				permanent: false
-			}
-		}
-	  }
-
+	const queryClient = new QueryClient()
 	
-}
+	const funcPost = async () => await NodeManager.getPost(authorId, postId)
+	const funcComments = async () => await NodeManager.getComments(authorId, postId)
+	await Promise.all([queryClient.prefetchQuery({queryKey: ['post', postId], queryFn: funcPost}) , queryClient.prefetchQuery({queryKey: ['comments', postId], queryFn: funcComments})])
 
-export default Page;
-
-
+	return {
+	  props: {
+		authorId,
+		userId,
+		postId
+      }
+	}
+  }

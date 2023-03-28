@@ -20,6 +20,9 @@ class API {
         return this.nodeType;
     }
 
+
+   
+
     public async getAuthors(page:number = 1, size:number = 25, query:string = ''):Promise<ListItem<Author>> {
         
         try {
@@ -210,9 +213,10 @@ class API {
     public async getPost(authorId:string, postId:string):Promise<Post | null> {
         try {
             const result = await this.axiosInstance.get<Post>(`/authors/${authorId}/posts/${postId}`);
-        return result.data;
+         
+            return result.data;
         } catch (e) {
-          
+          console.log(e);
             return null;
         } 
     }
@@ -277,6 +281,17 @@ class API {
         await this.sendToInbox(authorId,  post)
     }
 
+    public async sendPrivatePost(authorId: string, post: Post, recipient: string): Promise<void> {
+        if (this.nodeType === "remote") {
+            throw new Error("Remote nodes do not support this operation");
+        }
+        try {
+        await this.sendToInbox(authorId, post);
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
     public async updatePost(authorId:string, postId: string, post: Post): Promise<Post> {
         if (this.nodeType === "remote") {
             throw new Error("Remote nodes do not support this operation");
@@ -327,22 +342,26 @@ class API {
         }
     }
 
+
     public async createComment(authorId:string, postId: string, comment: Comment): Promise<Comment | null> {
         if (this.nodeType === "remote") {
-            throw new Error("Remote nodes do not support this operation");
-        }
-
-        try {
-            const result = await this.axiosInstance.post<Comment>(`/authors/${authorId}/posts/${postId}/comments`, comment);
-            
-            
+            await this.sendToInbox(authorId || '', comment); 
+            return null;
+        } else {
+            try {
             await this.sendToInbox(authorId || '', comment);
+            const result = await this.axiosInstance.post<Comment>(`/authors/${authorId}/posts/${postId}/comments`, comment);
+            console.log(result.status);
             return result.data;
         }
         catch (e) {
-        
+            console.error(e);
             return null;
         }
+        }
+
+        
+    
     }
 
     public async createLike(authorId:string, post:Post, authorFrom:Author):Promise<void> {
@@ -400,8 +419,9 @@ class API {
     }
 
     public async sendToInbox(authorId:string, activity:Activity):Promise<void> {
-        console.log(activity)
+       console.log("Sending to inbox");
         const result = await this.axiosInstance.post(`/authors/${authorId}/inbox/`, activity);
+        console.log(result.status);
         return result.data;
     }
 
@@ -420,6 +440,14 @@ class API {
                 items: []
             }
         }
+    }
+
+    public async clearInbox(authorId:string):Promise<void> {
+        if (this.nodeType === "remote") {
+            throw new Error("Remote nodes do not support this operation");
+        }
+        const result = await this.axiosInstance.delete(`/authors/${authorId}/inbox/`);
+        return result.data;
     }
 }
 

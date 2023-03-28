@@ -20,8 +20,20 @@ export default async function handler(
     else if (req.method === 'POST') {
         let {author_id} = req.query;
         try {
-            console.log('MEE')
+
             const results = await NodeManager.sendToInbox(author_id as string, req.body);
+            return res.status(200).json(results);
+        }
+        catch (e) {
+            console.error(e);
+            return res.status(200).json(null);
+        }
+    }
+
+    else if (req.method === 'DELETE') {
+        let {author_id} = req.query;
+        try {
+            const results = await NodeManager.clearInbox(author_id as string);
             return res.status(200).json(results);
         }
         catch (e) {

@@ -64,6 +64,7 @@ class NodeClient  {
     }
 
     public async getPost(authorId:string, postId: string): Promise<Post | null> {
+       
       return await this.APIInstance.getPost(authorId, postId);
     }
 
@@ -109,6 +110,9 @@ class NodeClient  {
         return await this.APIInstance.getInbox(authorId);
     }
 
+    public async clearInbox(authorId: string): Promise<void> {
+        return await this.APIInstance.clearInbox(authorId);
+    }
     
 
 }

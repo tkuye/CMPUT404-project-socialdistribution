@@ -10,16 +10,25 @@ import { Follow, InboxListItem, Post, Comment, Like } from '@/index';
 import CommentInbox from '@/components/inbox/CommentInbox';
 import FollowInbox from '@/components/inbox/FollowInbox';
 import LikeInbox from '@/components/inbox/LikeInbox';
-import { dehydrate, QueryClient, useQuery } from '@tanstack/react-query'
-
+import { dehydrate, QueryClient, useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import useAuthor from '@/hooks/useAuthor';
+import { UserAuthorContextProvider } from '@/contexts/userAuthor';
+import Button from '@/components/Button';
 interface streamProps {
 	authorId: string;
 }
 
 const Stream: React.FC<streamProps> = ({authorId}) => {
 	const { data } = useQuery({ queryKey: ['inbox'], queryFn:async () =>  await NodeClient.getInbox(authorId)})
+	const queryClient = useQueryClient()
+	const clearInbox = useMutation(async () => await NodeClient.clearInbox(authorId), {
+		onSuccess: () => {
+			queryClient.invalidateQueries(['inbox'])
+		}
+	})
+	const userAuthor = useAuthor(authorId)
 		return (
-			
+			<UserAuthorContextProvider value={userAuthor}>
 			<div className='flex flex-col h-screen'>
 				<Head>
 					<title>Stream</title>
@@ -29,6 +38,9 @@ const Stream: React.FC<streamProps> = ({authorId}) => {
 		<div className='flex flex-1 flex-col overflow-y-auto w-full py-12'>
 			
 		<div className='w-full mx-auto bg-white px-6 max-w-4xl space-y-2'>
+			<Button name='Clear Inbox' className='text-white' onClick={async () => {
+				await clearInbox.mutateAsync()
+			} }/>
 			{data?.items && data.items.map((item) => {
 				
 				switch (item.type && item.type.toLowerCase()) {
@@ -60,7 +72,10 @@ const Stream: React.FC<streamProps> = ({authorId}) => {
 			)
 		}
 		</div>
-		</div></div>);
+		</div>
+		</div>
+		</UserAuthorContextProvider>
+		);
 }
 export default Stream
 
@@ -81,7 +96,6 @@ export const getServerSideProps:GetServerSideProps = async (context) => {
 		  }
 		}
 	  }
-
 	  
 	  await queryClient.prefetchQuery(['inbox'], async () => {
 		let inbox = await NodeManager.getInbox(user.id)
@@ -92,36 +106,6 @@ export const getServerSideProps:GetServerSideProps = async (context) => {
 	  })
 
 
-	  
-	  /*
-	let inboxItems = inbox.items.map(async (item) => {
-		try {
-			
-			if (item.type && item.type.toLowerCase() === 'post') {
-			item = item as Post;
-			if (item.id) {
-				let url = item.id.split('/')
-			let id = url[url.length - 1]
-			let authorId = url[url.length - 3] 
-			let it = await NodeManager.getPost(authorId, id);
-			
-			if (!it) {
-				return item;
-			}
-			return it;
-			} else {
-				return item;
-			}
-
-		} else {
-			return item;
-		}
-		}	 catch (error) {
-			
-			return item;
-		}
-		
-	})*/
 
 	  
 	return {

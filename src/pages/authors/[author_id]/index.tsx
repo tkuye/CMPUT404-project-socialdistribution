@@ -14,8 +14,9 @@ import {NodeManager, NodeClient} from '@/nodes';
 import { Author, Post as PostType } from '@/index';
 import { Transition, Dialog } from '@headlessui/react';
 import ProfilePreview from '@/components/ProfilePreview';
-import { dehydrate, QueryClient, useQuery } from '@tanstack/react-query'
-import { set } from 'react-hook-form';
+import { dehydrate, QueryClient, useQuery, useMutation } from '@tanstack/react-query'
+import { UserAuthorContextProvider } from '@/contexts/userAuthor';
+import useAuthor from '@/hooks/useAuthor';
 
 interface Props {
 	author:Author
@@ -26,33 +27,53 @@ interface Props {
 	userId:string
 }
 
+
 const Page: NextPage<Props> = ({authorId, userId}) => {
 	
 	const [isModalOpen, setIsModalOpen] = useState(false)
-	const [followStatusState, setFollowStatusState] = useState('not_friends')
+	const [followStatusState, setFollowStatusState] = useState<string | undefined>(undefined)
+	
   	const user = useUser()
+	const userAuthor = useAuthor(userId)
 	const {
 		data:author
-	} = useQuery({ queryKey: ['author'], queryFn: async () => await NodeClient.getAuthor(authorId)})
+	} = useQuery({ queryKey: ['author', authorId], queryFn: async () => await NodeClient.getAuthor(authorId)})
 	const {
 		data:posts
-	} = useQuery({ queryKey: ['posts'], queryFn: async () => await NodeClient.getPosts(authorId)})
+	} = useQuery({ queryKey: ['posts', authorId], queryFn: async () => await NodeClient.getPosts(authorId)})
 
 	const {
 		data:followers
-	} = useQuery({ queryKey: ['followers'], queryFn: async () => await NodeClient.getFollowers(authorId)})
+	} = useQuery({ queryKey: ['followers', authorId], queryFn: async () => await NodeClient.getFollowers(authorId)})
 
 	const {
 		data:followStatus
-	} = useQuery({ queryKey: ['followStatus'], queryFn: async () => await NodeClient.checkFollowerStatus(userId, authorId), 
+	} = useQuery({ queryKey: ['followStatus', authorId], queryFn: async () => await NodeClient.checkFollowerStatus(userId, authorId), 
 	enabled: userId !== authorId,
 	onSuccess: (data) => {
 		setFollowStatusState(data)
-	}
+	},
+	
 })
 
 
 	const router = useRouter()
+
+	const followStatusMutation = useMutation(async ({authorTo, authorFrom, status}:{authorTo:Author, authorFrom:Author, status:string}) => {
+		await NodeClient.sendFollowRequest(authorTo, authorFrom)
+	}, {
+		onSuccess: (data, {status}) => {
+			setFollowStatusState(status)
+		}
+	})
+
+	const removeFollowStatusMutation = useMutation(async ({authorId, authorFromId, status}:{authorId:string, authorFromId:string, status:string}) => {
+		await NodeClient.removeFollower(authorId, authorFromId)
+	},{
+		onSuccess: (data, {status}) => {
+			setFollowStatusState(status)	
+		}
+	})
 
 
 	const closeModal = () => {
@@ -61,6 +82,7 @@ const Page: NextPage<Props> = ({authorId, userId}) => {
 
 
 		return (
+			<UserAuthorContextProvider value={userAuthor }>
 		<div className='flex flex-col h-screen'>
 		<Head>
 			<title>Author Profile</title>
@@ -83,30 +105,19 @@ const Page: NextPage<Props> = ({authorId, userId}) => {
 			 
 			<Button
 			onClick={async () => {
-				try {
-					
-					if (followStatusState === 'not_friends') { 
-					let authorTo = await NodeClient.getAuthor(authorId);
-					
-					let userAuthor = await NodeClient.getAuthor(user?.id || '')
-					if (authorTo && userAuthor) {
-					await NodeClient.sendFollowRequest(authorTo, userAuthor)
-					setFollowStatusState('pending')
-					}
-				} else if (followStatusState === 'friends') {
-					await NodeClient.removeFollower(authorId || '', user?.id || '');
-					setFollowStatusState('not_friends')
-				} else if (followStatusState === 'true_friends') {
-					await NodeClient.removeFollower(authorId || '', user?.id || '');
-					setFollowStatusState('not_friends')
+				if (author && userAuthor) {
+					if (followStatusState === 'not_friends') {
+					await followStatusMutation.mutateAsync({authorTo: author, authorFrom: userAuthor, status: 'pending'})
 				}
+
+				if (followStatusState === 'friends' || followStatusState === 'true_friends') {
+					await removeFollowStatusMutation.mutateAsync({authorId:authorId, authorFromId: userId, status: 'not_friends'})
 				}
-				catch {
-					console.log('error')
-				}
-			}}
+				
+			}}}
 			name={
-				followStatusState === 'not_friends' ? 'Follow' : followStatusState === 'friends' ? 'Unfollow' : followStatusState === 'true_friends' ? 'Unfriend' : 'Pending'
+				!followStatusState && (followStatus === 'not_friends' ? 'Follow' : followStatus === 'friends' ? 'Unfollow' : followStatus === 'true_friends' ? 'Unfollow' : 'Pending') ||
+				(followStatusState === 'not_friends' ? 'Follow' : followStatusState === 'friends' ? 'Unfollow' : followStatusState === 'true_friends' ? 'Unfollow' : 'Pending')
 			} className='text-white'/>}</div>
 			</div>
 			<div className='text-gray'>
@@ -169,7 +180,9 @@ const Page: NextPage<Props> = ({authorId, userId}) => {
       </Transition>
 			</div>
 			</div>
-		</div></div>);
+		</div></div>
+	</UserAuthorContextProvider>
+		);
 }
 
 export const getServerSideProps:GetServerSideProps = async (context) => {
@@ -194,28 +207,24 @@ export const getServerSideProps:GetServerSideProps = async (context) => {
 	  const queryClient = new QueryClient();
 
 	// cache the following data with react query: await NodeManager.checkAuthorExists(user.id)
+	  let authorId: string = context.params?.author_id as string;
 
-	  let q1 =  queryClient.prefetchQuery(['posts'], async () => {
+	  
+	  let q1 =  queryClient.prefetchQuery(['posts', authorId], async () => {
 		let data = await NodeManager.getPosts(context.params?.author_id as string);
 		return data;
 	  })
 
-	  let q2 = queryClient.prefetchQuery(['author'], async () => {
+	  let q2 = queryClient.prefetchQuery(['author', authorId], async () => {
 		let data = await NodeManager.getAuthor(context.params?.author_id as string);
 		return data;
 	  })
 
-	  let q3 = queryClient.prefetchQuery(['followers'], async () => {
-		let data = await NodeManager.getFollowers(context.params?.author_id as string);
-		return data;
-	  })
-
-	  let q4 = queryClient.prefetchQuery(['following'], async () => {
+	  let q4 = queryClient.prefetchQuery(['followStatus', authorId], async () => {
 		return await NodeManager.checkFollowerStatus(context.params?.author_id as string, user.id);
 	  })
 	
-		await Promise.all([q1, q2, q3, q4])
-
+		await Promise.all([q1, q2, q4])
 	
 		return {
 			props: {

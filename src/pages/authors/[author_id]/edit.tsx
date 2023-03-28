@@ -15,7 +15,7 @@ import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
 import {NodeManager, NodeClient} from '@/nodes';
 import { getBase64 } from '@/utils';
 import { useRouter } from 'next/router';
-
+import { useMutation } from '@tanstack/react-query';
 
 interface createProps {
 	type: string;
@@ -31,6 +31,20 @@ const Create: React.FC<createProps> = ({displayName, github, profileImage}) => {
 	const supabaseClient = useSupabaseClient()
   	const user = useUser()
 	const router = useRouter()
+	const editProfileMutation = useMutation(async (data:any) => {
+		if (data.profile && data.profile.length > 0) {
+			data.profileImage = await getBase64(data.profile[0])
+		}
+		
+        data.github = 'https://github.com/' + data.github
+        delete data.profile
+        try {
+           let res =  await NodeClient.updateAuthor(user?.id || '', data);
+            
+        } catch (error) {
+            console.log(error)
+        }
+	})
 	const { register, handleSubmit, watch, formState: { errors } } = useForm({
 		defaultValues: {
 			displayName,
@@ -40,18 +54,8 @@ const Create: React.FC<createProps> = ({displayName, github, profileImage}) => {
 	})
 
 	const onSubmit = async (data:any) => {
-		if (data.profile && data.profile.length > 0) {
-			data.profileImage = await getBase64(data.profile[0])
-		}
-		
-        data.github = 'https://github.com/' + data.github
-        delete data.profile
-        try {
-           let res =  await NodeClient.updateAuthor(user?.id || '', data);
-            router.push(`/authors/${user?.id}`)
-        } catch (error) {
-            console.log(error)
-        }
+		await editProfileMutation.mutateAsync(data);
+		await router.push(`/authors/${user?.id}`)
 	}
 
 

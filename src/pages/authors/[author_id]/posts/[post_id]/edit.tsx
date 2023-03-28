@@ -7,8 +7,6 @@ import Head from 'next/head';
 import File from "@/components/File";
 import Sidebar from '@/components/Sidebar';
 import Select from "@/components/Select";
-import { Auth } from '@supabase/auth-ui-react'
-import {ThemeSupa} from '@supabase/auth-ui-shared'
 import { useUser, useSupabaseClient } from '@supabase/auth-helpers-react'
 import { useForm, FormProvider } from "react-hook-form";
 import { getBase64 } from '@/utils';
@@ -17,41 +15,40 @@ import { useRouter } from 'next/router';
 import { GetServerSideProps } from 'next';
 import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
 import { Post } from '@/index';
+import { dehydrate, QueryClient, useMutation, useQuery } from '@tanstack/react-query';
 const MDEditor = dynamic(
 	() => import("@uiw/react-md-editor"),
 	{ ssr: false }
   );
 
 interface createProps {
-    post: Post
 	authorId: string;
 	postId: string;
 }
 
 
 
-const Edit: React.FC<createProps> = ({post, postId, authorId}) => {
+const Edit: React.FC<createProps> = ({postId, authorId}) => {
+
+	const {data: post} = useQuery({queryKey:['post', postId], queryFn:async () => {return await NodeClient.getPost(authorId, postId)}})
+
+	
 	const [selectValue, setSelectValue] = useState<string>(post?.contentType || 'text/plain');
 	const [markDownValue, setMarkDownValue] = useState<string | undefined>(
-        post.contentType === 'text/markdown' ? post.content : undefined
+        post?.contentType === 'text/markdown' ? post?.content : undefined
     )
 	const form= useForm({
         defaultValues: {
-            title: post.title,
-            description:post.description,
-            categories: typeof post.categories === 'string' ? post.categories : post.categories?.join(','),
-            contentType: post.contentType,
-            visibility: post.visibility ? 'PUBLIC' : post.unlisted ? 'UNLISTED' : 'PRIVATE',
-            content: post.content,
+            title: post?.title,
+            description:post?.description,
+            categories: typeof post?.categories === 'string' ? post?.categories : post?.categories?.join(','),
+            contentType: post?.contentType,
+            visibility: post?.visibility ? 'PUBLIC' : post?.unlisted ? 'UNLISTED' : 'PRIVATE',
+            content: post?.content,
 
         }
     })
-	const supabaseClient = useSupabaseClient()
-  	const user = useUser()
-	const router = useRouter()
-
-
-	const onSubmit = async (data:any) => {
+	const EditPost = useMutation(async (data:any) => {
 		if (data.contentType === 'text/markdown') {
 			data.content = markDownValue
 		}
@@ -81,15 +78,20 @@ const Edit: React.FC<createProps> = ({post, postId, authorId}) => {
 				await NodeClient.alertNewPost(authorId, post)
 			}
 		
-		await router.push(`/authors/${authorId}/posts/${postId}`)
+		
 		} catch (error) {
 			console.log(error)
 		}
-		
+	})
 
-		
-		
-}
+	const supabaseClient = useSupabaseClient()
+  	const user = useUser()
+	const router = useRouter()
+
+	const onSubmit = async (data:any) => {
+		await EditPost.mutateAsync(data)
+		await router.push(`/authors/${authorId}/posts/${postId}`)
+	}
 
 
 		return (<div className='flex flex-col h-screen'>
@@ -151,6 +153,7 @@ const Edit: React.FC<createProps> = ({post, postId, authorId}) => {
 				register={form.register}
 				id="visibility"
 				name={"Post Visibility"}
+				value={form.watch('visibility')}
 			options={
 				[{
 					name: "Public",
@@ -188,15 +191,7 @@ export const getServerSideProps:GetServerSideProps = async (context) => {
 		}
 	  }
 
-	  if (!await NodeManager.checkAuthorExists(user.id)) {
-		return {
-			redirect: {
-				destination: '/onboarding',
-				permanent: false
-			}
-		}
-	  }
-	  
+
 	
 	let  authorId = context.params?.author_id as string
 	let postId = context.params?.post_id as string
@@ -210,19 +205,17 @@ export const getServerSideProps:GetServerSideProps = async (context) => {
 	  }
 	}
 
-    let post = await NodeManager.getPost(authorId, postId) 
+	let queryClient = new QueryClient()
+	await queryClient.prefetchQuery(['post', postId], async () => {
+		
+		return await NodeManager.getPost(authorId, postId)
+	})
 
-	if (!post) {
-		return {
-			notFound: true
-		}
-	}
-  
 	return {
 	  props: {
-		postId,
 		authorId,
-        post: post
+		postId,
+		dehydratedState: dehydrate(queryClient)
       }
 	}
   }

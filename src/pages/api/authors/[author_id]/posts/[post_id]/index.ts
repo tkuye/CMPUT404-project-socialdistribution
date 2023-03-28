@@ -9,6 +9,7 @@ export default async function handler(
     if (req.method === 'GET') {
          try {
         let {author_id, post_id} = req.query;
+        
         const results = await NodeManager.getPost(author_id as string, post_id as string);
 
         return res.status(200).json(results);

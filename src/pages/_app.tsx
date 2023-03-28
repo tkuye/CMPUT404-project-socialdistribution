@@ -4,7 +4,6 @@ import "@uiw/react-md-editor/markdown-editor.css";
 import "@uiw/react-markdown-preview/markdown.css";
 import { createBrowserSupabaseClient } from '@supabase/auth-helpers-nextjs'
 import { SessionContextProvider } from '@supabase/auth-helpers-react'
-import { GetServerSideProps } from 'next';
 import {
   Hydrate,
   QueryClient,
@@ -17,7 +16,11 @@ import type { AppProps } from 'next/app'
 export default function App({ Component, pageProps }: AppProps) {
   const [supabaseClient] = useState(() => createBrowserSupabaseClient())
   const [queryClient] = useState(() => new QueryClient())
+  // get the initial session from the server
+ 
+  
   return (
+
     <QueryClientProvider client={queryClient}>
        <Hydrate state={pageProps.dehydratedState}>
     <SessionContextProvider
@@ -28,6 +31,7 @@ export default function App({ Component, pageProps }: AppProps) {
     </SessionContextProvider>
     </Hydrate>
     </QueryClientProvider>
+
   )
 }
 
