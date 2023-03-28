@@ -6,7 +6,7 @@ import { EllipsisHorizontalIcon } from '@heroicons/react/24/outline';
 import { ThumbsUp, Share, Link2, MessageCircle } from 'react-feather';
 import { Tooltip } from '@material-tailwind/react';
 import { Menu } from '@headlessui/react'
-import {Post as PostProps, Comment as CommentI} from '@/index';
+import {Post as PostProps, Comment as CommentI, Author} from '@/index';
 import {NodeClient} from '@/nodes';
 import { useRouter } from 'next/router';
 import { useUser } from '@supabase/auth-helpers-react';
@@ -15,6 +15,8 @@ import {useForm, FormProvider } from 'react-hook-form';
 import TextArea from './Textarea';
 import Button from './Button';
 import Comment from './Comment';
+import { useQueryClient, useMutation } from '@tanstack/react-query';
+import { useUserAuthor } from '@/contexts/userAuthor';
 
 interface PostPr {
 	post: PostProps
@@ -27,10 +29,49 @@ const Post: React.FC<PostPr> = ({post, comments}) => {
 	const router = useRouter();
 	const [isOpen, setIsOpen] = React.useState(false)
 	const commentForm = useForm();
+	const queryClient = useQueryClient();
+	const userAuthor = useUserAuthor();
+
+	const likeMutation = useMutation(async () => {	
+		let authorId = post?.author?.id?.split('/').pop() || '';
+		
+		if (userAuthor) {
+			await NodeClient.createLike(authorId, post, userAuthor);
+			setLiked(true);
+		}
+	}, {
+		onSuccess: () => {
+			queryClient.invalidateQueries(['likes', post.id?.split('/').pop() || ''])
+		}
+	})
+
+	const commentMutation = useMutation(async (data:any) => {
+		let authorId = post?.author?.id?.split('/').pop() || '';
+		let postId = post.id?.split('/').pop() || '';
+		
+		if (userAuthor) {
+			let comment:CommentI = {
+			type:'comment',
+			comment: data.comment,
+			contentType: 'text/plain',
+			published: new Date().toISOString(),
+			author:userAuthor
+		}
+		await NodeClient.createComment(authorId, postId, comment);
+		let link = `/authors/${post?.author?.id?.split('/').pop()}/posts/${post.id?.split('/').pop()}`;
+		await router.push(link);
+		}
+	}, {
+		onSuccess: () => {
+			queryClient.invalidateQueries(['comments', post.id?.split('/').pop() || ''])
+		}
+	})
 	const closeModal = () => {
 		setIsOpen(false);
 		commentForm.reset();
 	}
+
+
 	
 	useEffect(() => {
 		
@@ -38,7 +79,6 @@ const Post: React.FC<PostPr> = ({post, comments}) => {
 		if (!user)
 			return;
 		NodeClient.isPostLiked(postId || '', user?.id || ``).then((res) => {
-			
 			setLiked(res)
 		})
 		
@@ -46,35 +86,12 @@ const Post: React.FC<PostPr> = ({post, comments}) => {
 	}, [user])
 
 	const likePost =async () => {
-		let authorId = post?.author?.id?.split('/').pop() || '';
-		if (liked)
-			return;
-		let authorUser = await NodeClient.getAuthor(user?.id || ``)
-		if (authorUser) {
-			await NodeClient.createLike(authorId, post, authorUser);
-			setLiked(true)
-		}
+		await likeMutation.mutateAsync();
 		
 	}
 
 	const onSubmit = async (data:any) => {
-		let authorId = post?.author?.id?.split('/').pop() || '';
-		let postId = post.id?.split('/').pop() || '';
-		let authorUser = await NodeClient.getAuthor(user?.id || ``)
-		
-		if (authorUser) {
-			let comment:CommentI = {
-			type:'comment',
-			comment: data.comment,
-			contentType: 'text/plain',
-			published: new Date().toISOString(),
-			author:authorUser
-		}
-		await NodeClient.createComment(authorId, postId, comment);
-		let link = `/authors/${post?.author?.id?.split('/').pop()}/posts/${post.id?.split('/').pop()}`;
-		await router.push(link);
-		}
-		
+		await commentMutation.mutateAsync(data);
 		closeModal()
 	}
 
@@ -102,7 +119,13 @@ const Post: React.FC<PostPr> = ({post, comments}) => {
 											let postId = post?.id?.split('/').pop() 
 											let authorId = post?.author?.id?.split('/').pop()
 											await NodeClient.deletePost(authorId || '', postId || '');
-											await router.reload();
+											// check if router is index page with hash or without hash
+											if (router.pathname === '/' || router.pathname === '/#'){
+												queryClient.invalidateQueries(['inbox']) 
+											} {
+												queryClient.invalidateQueries(['posts', authorId])
+											}
+											
 										}	
 									} className={`block px-4 py-2 text-sm text-gray-700 ${active ? 'bg-gray-100' : ''}`} href="#">
 										Delete

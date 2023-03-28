@@ -129,13 +129,13 @@ class API {
         
         let actor = await this.getAuthor(foreignAuthorId);
         let object = await this.getAuthor(authorId);
+
         if (actor && object) {
         await this.sendToInbox(foreignAuthorId, {
                 type: 'follow',
                 summary: `${object.displayName} accepted your follow request`,
                 actor: actor,
                 object: object
-            
         });
     }
     } catch (e) {
@@ -158,7 +158,7 @@ class API {
     public async removeFollower(authorId: string, foreignAuthorId: string): Promise<void> {
 
             try {
-                console.log(authorId, foreignAuthorId)
+            
         return await this.axiosInstance.delete<void, any>(`/authors/${authorId}/followers/${foreignAuthorId}`);
         } 
         catch (e) {
@@ -230,7 +230,7 @@ class API {
             let followers = await this.getFollowers(authorId);
             if (!followers.items) return;
             let followerList = followers.items;
-            Promise.all(followerList.map(async follower => {
+            await Promise.all(followerList.map(async follower => {
                 if (!follower.id) return;
                  let followerId = follower.id.split('/').pop();
                  if (post.visibility === 'UNLISTED') {
@@ -294,11 +294,8 @@ class API {
     }
 
     public async createComment(authorId:string, postId: string, comment: Comment): Promise<Comment | null> {
-
-
         try {
             const result = await this.axiosInstance.post<Comment>(`/authors/${authorId}/posts/${postId}/comments`, comment);
-            await this.sendToInbox(authorId || '', comment);
             return result.data;
         }
         catch (e) {
@@ -380,6 +377,10 @@ class API {
                 items: []
             }
         }
+    }
+
+    public async clearInbox(authorId:string):Promise<void> {
+        await this.axiosInstance.delete(`/authors/${authorId}/inbox/`);
     }
 }
 

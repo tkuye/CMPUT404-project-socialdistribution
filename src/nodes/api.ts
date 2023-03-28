@@ -1,13 +1,15 @@
 import axios, {AxiosInstance, AxiosRequestConfig} from "axios";
 import {Author, ListItem, CommentListItem, Post, Comment, Like, InboxListItem, Activity} from "..";
+import { uuid } from 'uuidv4';
 
 class API {
-    private axiosInstance: AxiosInstance;
+    protected axiosInstance: AxiosInstance;
     private nodeType: "local" | "remote";
     constructor(apiURL: string, axiosConfig?: AxiosRequestConfig, nodeType:"local"|"remote" = "local") {
         this.axiosInstance = axios.create(
             {
                 baseURL: apiURL,
+             
              
                 ...axiosConfig
             }
@@ -20,13 +22,14 @@ class API {
         return this.nodeType;
     }
 
+
+
+   
+
     public async getAuthors(page:number = 1, size:number = 25, query:string = ''):Promise<ListItem<Author>> {
         
         try {
-            this.axiosInstance.get('/authors').then((res) => {
-                
-            });
-            const results = await this.axiosInstance.get<ListItem<Author>>(`/authors/?query=${query}`);
+            const results = await this.axiosInstance.get<ListItem<Author>>(`/authors/?page=${page}&size=${size}&query=${query}`);
             if (results.data.items === undefined) {
                 throw new Error("items is undefined");
             }
@@ -149,15 +152,7 @@ class API {
         
         let actor = await this.getAuthor(foreignAuthorId);
         let object = await this.getAuthor(authorId);
-        if (actor && object) {
-        await this.sendToInbox(foreignAuthorId, {
-                type: 'follow',
-                summary: `${object.displayName} accepted your follow request`,
-                actor: actor,
-                object: object
-            
-        });
-    }
+
     } catch (e) {
             
         }
@@ -210,7 +205,8 @@ class API {
     public async getPost(authorId:string, postId:string):Promise<Post | null> {
         try {
             const result = await this.axiosInstance.get<Post>(`/authors/${authorId}/posts/${postId}`);
-        return result.data;
+         
+            return result.data;
         } catch (e) {
           
             return null;
@@ -277,6 +273,17 @@ class API {
         await this.sendToInbox(authorId,  post)
     }
 
+    public async sendPrivatePost(authorId: string, post: Post, recipient: string): Promise<void> {
+        if (this.nodeType === "remote") {
+            throw new Error("Remote nodes do not support this operation");
+        }
+        try {
+        await this.sendToInbox(authorId, post);
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
     public async updatePost(authorId:string, postId: string, post: Post): Promise<Post> {
         if (this.nodeType === "remote") {
             throw new Error("Remote nodes do not support this operation");
@@ -327,81 +334,70 @@ class API {
         }
     }
 
-    public async createComment(authorId:string, postId: string, comment: Comment): Promise<Comment | null> {
-        if (this.nodeType === "remote") {
-            throw new Error("Remote nodes do not support this operation");
-        }
 
+    public async createComment(authorId:string, postId: string, comment: Comment): Promise<Comment | null> {
+        
+        
+        comment.id = comment.author?.id + "/posts/" + postId + "/comments/" + uuid();
+        
         try {
-            const result = await this.axiosInstance.post<Comment>(`/authors/${authorId}/posts/${postId}/comments`, comment);
-            
-            
-            await this.sendToInbox(authorId || '', comment);
-            return result.data;
+            await this.sendToInbox(authorId || '', comment); 
+            return comment;
         }
         catch (e) {
         
             return null;
         }
+        
+
     }
 
     public async createLike(authorId:string, post:Post, authorFrom:Author):Promise<void> {
-        
         try {
-
-        await this.sendToInbox(authorId, {
-                "@context": "https://www.w3.org/ns/activitystreams",
-                "summary": `${authorFrom.displayName} liked your post: ${post.title}`,
-                type: 'like',
-                author: authorFrom,
-                object: post.id,
-            }
-        );
-
-        } catch (e) {
-            console.log(e);
-        }
-        
-    }
-
-
-
-    public async createCommentLike(authorId:string, comment:Comment, authorFrom:Author):Promise<void> {
-      
-        try {
-
-        await this.sendToInbox(authorId, {
+            await this.sendToInbox(authorId, {
                     "@context": "https://www.w3.org/ns/activitystreams",
-                    "summary": `${authorFrom.displayName} liked your comment`,
+                    "summary": `${authorFrom.displayName} liked your post: ${post.title}`,
                     type: 'like',
                     author: authorFrom,
-                    object: comment?.id || '',
+                    object: post.id,
                 }
             );
+        } catch (e) {
+            console.log(e);
+        } 
+    }
 
+    public async createCommentLike(authorId:string, comment:Comment, authorFrom:Author):Promise<void> {
+        try {
+            await this.sendToInbox(authorId, {
+                        "@context": "https://www.w3.org/ns/activitystreams",
+                        "summary": `${authorFrom.displayName} liked your comment`,
+                        type: 'like',
+                        author: authorFrom,
+                        object: comment?.id || '',
+                    }
+                );
         } catch (e) {
             console.log(e);
         }
-        
     }
 
     public async getLiked(authorId:string):Promise<ListItem<Like>> {
-        
         try {
             const results = await this.axiosInstance.get<ListItem<Like>>(`/authors/${authorId}/liked`);
-        return results.data;
+            return results.data;
         } catch (e) {
             return {
                 type: "likes",
                 items: []
             }
-        }
-        
+        }   
     }
 
     public async sendToInbox(authorId:string, activity:Activity):Promise<void> {
-        console.log(activity)
+       console.log("Sending to inbox");
         const result = await this.axiosInstance.post(`/authors/${authorId}/inbox/`, activity);
+        console.log(result.status);
         return result.data;
     }
 
@@ -421,7 +417,16 @@ class API {
             }
         }
     }
+
+    public async clearInbox(authorId:string):Promise<void> {
+        if (this.nodeType === "remote") {
+            throw new Error("Remote nodes do not support this operation");
+        }
+        const result = await this.axiosInstance.delete(`/authors/${authorId}/inbox/`);
+        return result.data;
+    }
 }
 
 
 export default API;
+

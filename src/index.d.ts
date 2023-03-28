@@ -73,3 +73,10 @@ export interface InboxListItem extends ListItem {
 }
 
 export type Activity = Like | Follow | Comment | Post;
+
+export interface T7MsgFormat {
+            type?: 'post' | 'like' | 'follow' | 'comment'
+            summary?: string
+            author?: Author
+            object?: string | Author
+        }

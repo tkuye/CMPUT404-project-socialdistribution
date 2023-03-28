@@ -11,7 +11,7 @@ import {NodeManager, NodeClient} from '@/nodes';
 import {useForm} from 'react-hook-form'
 import { Author } from '..';
 import ProfilePreview from '@/components/ProfilePreview';
-import { QueryClient, useQuery } from '@tanstack/react-query';
+import { QueryClient, useQuery, useQueryClient } from '@tanstack/react-query';
 interface searchProps {
 
 }
@@ -22,8 +22,9 @@ const SearchPage: React.FC<searchProps> = ({}) => {
 	const user = useUser()
 	const [searches, setSearches] = React.useState<Author[]>([])
 	const form = useForm()
+	const queryClient = useQueryClient()
 
-	const searchQuery = useQuery({ queryKey: ['search'], queryFn: async () => await NodeClient.getAuthors()})
+	const searchQuery = useQuery({ queryKey: ['authors'], queryFn: async () => await NodeClient.getAuthors()})
 
 	const searchSubmit = async (data:any) => {
 		
@@ -31,7 +32,13 @@ const SearchPage: React.FC<searchProps> = ({}) => {
 
 		if (searchItems) {
 			setSearches(searchItems)
-			
+			for (let searchItem of searchItems) {
+			const auSearchId = searchItem?.id?.split('/').pop()
+			if (auSearchId) {
+				await queryClient.prefetchQuery(['followers', auSearchId], async () => await NodeClient.getFollowers(auSearchId))
+				await queryClient.prefetchQuery(['followStatus', auSearchId], async () => await NodeClient.checkFollowerStatus(user?.id || '', auSearchId))
+			}
+			}
 		}
 		
 	}
@@ -76,8 +83,6 @@ export const getServerSideProps:GetServerSideProps = async (context) => {
 	const supabaseServerClient = createServerSupabaseClient(context)
 
 	const queryClient = new QueryClient()
-
-	await queryClient.prefetchQuery({ queryKey: ['search'], queryFn: async () => await NodeManager.getAuthors()})
 
 	  const {
 		data: { user },
