@@ -8,6 +8,7 @@ class API {
         this.axiosInstance = axios.create(
             {
                 baseURL: apiURL,
+             
                 ...axiosConfig
             }
         );
@@ -89,7 +90,7 @@ class API {
             return result.data;
         }
         catch (e) {
-        
+            console.log(e);
             return null;
         }
     }
@@ -334,7 +335,7 @@ class API {
         try {
             const result = await this.axiosInstance.post<Comment>(`/authors/${authorId}/posts/${postId}/comments`, comment);
             
-            console.log(result.data);
+            
             await this.sendToInbox(authorId || '', comment);
             return result.data;
         }
@@ -399,6 +400,7 @@ class API {
     }
 
     public async sendToInbox(authorId:string, activity:Activity):Promise<void> {
+        console.log(activity)
         const result = await this.axiosInstance.post(`/authors/${authorId}/inbox/`, activity);
         return result.data;
     }

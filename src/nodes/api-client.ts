@@ -70,7 +70,9 @@ class API {
 
     public async getAuthor(authorId:string):Promise<Author | null> {
         try {
+            
             const result = await this.axiosInstance.get<Author>(`/authors/${authorId}`);
+            
             return result.data;
         }
         catch (e) {
@@ -349,7 +351,7 @@ class API {
         
         try {
             const results = await this.axiosInstance.get<ListItem<Like>>(`/authors/${authorId}/liked`);
-            console.log(results.data);
+            
             return results.data;
         } catch (e) {
             return {

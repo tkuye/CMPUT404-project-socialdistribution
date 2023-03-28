@@ -38,6 +38,8 @@ class NodeManager  {
         if (nodeId === 'all') {
             for (const node of Object.values(this.nodes)) {
                 const author = await node.getAuthor(authorId);
+               
+                
                 if (author) {
                     return author;
                 }

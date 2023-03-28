@@ -14,9 +14,9 @@ const ProfilePreview: React.FC<ProfilePreviewProps> = ({author, closeFunction}) 
         if (author?.id?.startsWith('http')) {
             // get end of url
             const id = author?.id?.split('/').pop()
-            router.push(`/authors/${id}`)
+            router.push(`/authors/${id}`,  undefined, { shallow: true })
         } else {
-            router.push(`/authors/${author.id}`)
+            router.push(`/authors/${author.id}`,  undefined, { shallow: true })
         }
         if (closeFunction) {
             closeFunction()

@@ -20,6 +20,7 @@ export default async function handler(
     else if (req.method === 'POST') {
         let {author_id} = req.query;
         try {
+            console.log('MEE')
             const results = await NodeManager.sendToInbox(author_id as string, req.body);
             return res.status(200).json(results);
         }

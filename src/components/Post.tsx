@@ -38,7 +38,7 @@ const Post: React.FC<PostPr> = ({post, comments}) => {
 		if (!user)
 			return;
 		NodeClient.isPostLiked(postId || '', user?.id || ``).then((res) => {
-			console.log(res, "MOOO")
+			
 			setLiked(res)
 		})
 		

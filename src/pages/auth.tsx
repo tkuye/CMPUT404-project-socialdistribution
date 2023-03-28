@@ -38,6 +38,8 @@ const AuthPage: React.FC<loginProps> = ({}) => {
 }
 export default AuthPage;
 
+
+export const revalidate = 60
 export const getServerSideProps:GetServerSideProps = async (context) => {
   
       const supabaseServerClient = createServerSupabaseClient(context)
