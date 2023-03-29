@@ -24,7 +24,7 @@ const SearchPage: React.FC<searchProps> = ({}) => {
 	const form = useForm()
 	const queryClient = useQueryClient()
 
-	const searchQuery = useQuery({ queryKey: ['authors'], queryFn: async () => await NodeClient.getAuthors()}, {
+	const searchQuery = useQuery(['authors'], async () => await NodeClient.getAuthors(), {
 		staleTime: 1000 * 60 * 60 * 24,
 	})
 

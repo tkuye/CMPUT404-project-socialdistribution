@@ -2,52 +2,39 @@ import API from "./api";
 import {Author, CommentListItem, ListItem, Post, Comment, Like, InboxListItem, Activity} from "../index";
 import { getURL } from ".";
 
+const memo = (callback:any) => {
+  const cache = new Map();
+  return (...args:any) => {
+    const selector = JSON.stringify(args);
+    if (cache.has(selector)) return cache.get(selector);
+    const value = callback(...args);
+    cache.set(selector, value);
+    return value;
+  };
+};
+
 class NodeManager  {
 
     private nodes: {
         [key: string]: API;
     }
 
-    private authorCache: Map<string, Author>;
-
     
 
     constructor(nodes: { [key: string]: API }) {
         this.nodes = nodes;
-        this.authorCache = new Map();
-        // add authors to cache
-        this.reCacheAuthors();
-        
-    }
 
-     private reCacheAuthors() {
-        let authors = [];
-        for (const node of Object.values(this.nodes)) {
-            authors.push(node.getAuthors());
-        }
-        Promise.all(authors).then((authorLists) => {
-            for (const authorList of authorLists) {
-                if (!authorList.items) continue;
-                for (const author of authorList.items) {
-                    if (author.id) {
-                        let authorId = author.id.split("/").pop();
-                        if (authorId)
-                        this.authorCache.set(authorId, author);
-                    }
-                }
-            }
-        });
         
     }
 
     public addNode(key:string, api:API): void {
         this.nodes[key] = api;
-        this.reCacheAuthors();
+
     }
 
     public removeNode(nodeId: string): void {
         delete this.nodes[nodeId];
-        this.reCacheAuthors();
+
     }
 
     public getNodes(): {[key: string]:API} {
@@ -58,9 +45,6 @@ class NodeManager  {
         for (const node of Object.values(this.nodes)) {
             if (node.getNodeType() === "local") {
                 // check cache first
-                if (this.authorCache.get(authorId)) {
-                    return true;
-                }
                 if (await node.getAuthor(authorId)) {
                     return true;
                 }
@@ -73,9 +57,6 @@ class NodeManager  {
         if (nodeId === 'all') {
             for (const node of Object.values(this.nodes)) {
                 // check cache first
-                if (this.authorCache.get(authorId)) {
-                    return this.authorCache.get(authorId) || null;
-                }
                 const author = await node.getAuthor(authorId);
                 if (author) {
                     if (author.id)
@@ -89,17 +70,13 @@ class NodeManager  {
         }
     }
 
+
     public async createAuthor(author:Author) {
         for (const node of Object.values(this.nodes)) {
             if (node.getNodeType() === "local") {
                 await node.createAuthor(author);
             }
-            // add to cache
-            if (author.id) {
-                let authorId = author.id.split("/").pop();
-                if (authorId)
-                this.authorCache.set(authorId, author);
-            }
+
         }
         return;
     }
@@ -132,12 +109,7 @@ class NodeManager  {
             }
         }
 
-        // update cache
-        if (this.authorCache.get(authorId)) {
-            this.authorCache.set(authorId, data);
-        }
 
-        return this.authorCache.get(authorId) || null;
         throw new Error("No local node found");
     }
 
@@ -205,9 +177,7 @@ class NodeManager  {
 
     public async checkFollowerStatus(authorId: string, foreignAuthorId: string): Promise<string> {
         // check cache first
-        if (this.authorCache.get(authorId)) {
-            // get node from author
-            let author = this.authorCache.get(authorId);
+        let author = await this.getAuthor(authorId);
             if (author?.id) {
                 let nodeId = getURL(author.id);
                 let node = this.nodes[nodeId];
@@ -215,7 +185,7 @@ class NodeManager  {
                     return await node.checkFollowerStatus(authorId, foreignAuthorId);
                 }
             }
-        }
+        
         return "not_friends"
     }
 
@@ -233,65 +203,38 @@ class NodeManager  {
         let authorUrl = getURL(authorTo.id || "");
         let node = this.nodes[authorUrl];
         if (node) {
+            
             return await node.sendFollowRequest(authorTo, authorFrom);
         }
-        throw new Error("No local node found");
+        
     }
 
     public async getPost(authorId:string, postId: string): Promise<Post | null> {
        // find author in cache
-      
-         if (this.authorCache.get(authorId)) {
-            let author = this.authorCache.get(authorId);
-            let nodeId = author?.id 
-            nodeId = getURL(nodeId || "");
-                if (nodeId) {
-                    
-                    return await this.nodes[nodeId].getPost(authorId, postId);
-                }
-         } else {
-            let author = await this.getAuthor(authorId);
-            if (author) {
-                this.authorCache.set(authorId, author);
-            }
-            let nodeId = author?.id 
-            nodeId = getURL(nodeId || "");
-                if (nodeId) {
-                    return await this.nodes[nodeId].getPost(authorId, postId);
-            }
-         }
 
+            let author = await this.getAuthor(authorId);
+            let nodeId = author?.id 
+            nodeId = getURL(nodeId || "");
+                if (nodeId) {
+                    return await this.nodes[nodeId].getPost(authorId, postId);
+            }
+         
         return null;
     }
 
     public async getPosts(authorId:string, nodeId:string = 'all'): Promise<ListItem<Post>> {
         // check cache for author
-        if (this.authorCache.get(authorId)) {
+        let author = await this.getAuthor(authorId);
 
-            let author = this.authorCache.get(authorId);
-            let nodeId = author?.id 
-            nodeId = getURL(nodeId || "");
+            let node = author?.id
+            nodeId = getURL(node || "");
            
-            if (nodeId) {
+            if (node) {
                 return await this.nodes[nodeId].getPosts(authorId);
             }
 
-        }
-        if (nodeId === 'all') {
-            let posts: Post[] = [];
-            for (const node of Object.values(this.nodes)) {
-                const results = await node.getPosts(authorId);
-                if (results.items)
-                posts = posts.concat(results.items);
-            }
-            return {
-                type: "posts",
-                items: posts
-            }
-        } else {
-            
             return await this.nodes[nodeId].getPosts(authorId);
-        }
+        
     }
 
     public async createPost(authorId: string, post: Post): Promise<Post | null> {
@@ -324,14 +267,14 @@ class NodeManager  {
     public async getComments(authorId:string, postId: string, page:number = 0, size:number = 25): Promise<CommentListItem> {
 
         // check cache for author
-        if (this.authorCache.get(authorId)) {
-            let author = this.authorCache.get(authorId);
+        let author = await this.getAuthor(authorId);
+
             let nodeId = author?.id 
             nodeId = getURL(nodeId || "");
             if (nodeId) {
                 return await this.nodes[nodeId].getComments(authorId, postId, page, size);
             }
-        }
+        
 
             let comments: Comment[] = [];
             let post =''
@@ -360,54 +303,41 @@ class NodeManager  {
 }
 
     public async createComment(authorId: string, postId: string, comment: Comment): Promise<Comment | null> {
-        // GET author from cache
-        if (this.authorCache.get(authorId)) {
-            let author = this.authorCache.get(authorId);
-            let nodeId = author?.id 
-            nodeId = getURL(nodeId || "");
-            
 
-            if (nodeId) {
-                return await this.nodes[nodeId].createComment(authorId, postId, comment);
-            }
-        } else {
             let author = await this.getAuthor(authorId);
-            if (author) {
-                this.authorCache.set(authorId, author);
-            }
+            
             let nodeId = author?.id 
             nodeId = getURL(nodeId || "");
 
             if (nodeId) {
                 return await this.nodes[nodeId].createComment(authorId, postId, comment);
             }
-        }
+        
 
         return null;
     }
 
     public async createLike(authorId: string, post:Post, authorFrom:Author): Promise<void> {
         // GET author from cache
-        if (this.authorCache.get(authorId)) {
-            let author = this.authorCache.get(authorId);
+            let author = await this.getAuthor(authorId);
             let nodeId = author?.id 
             nodeId = getURL(nodeId || "");
             if (nodeId) {
                 return await this.nodes[nodeId].createLike(authorId, post, authorFrom);
             }
-        }
+       
     }
 
     public async createCommentLike(authorId: string, comment:Comment, authorFrom:Author):Promise<void> {
         // GET author from cache
-        if (this.authorCache.get(authorId)) {
-            let author = this.authorCache.get(authorId);
+        
+            let author = await this.getAuthor(authorId);
             let nodeId = author?.id 
             nodeId = getURL(nodeId || "");
             if (nodeId) {
                 return await this.nodes[nodeId].createCommentLike(authorId, comment, authorFrom);
             }
-        }
+        
     }
 
     public async getLiked(authorId:string, nodeId:string = 'all'): Promise<ListItem<Like>> {
@@ -429,15 +359,13 @@ class NodeManager  {
     }
 
     public async sendToInbox(authorId: string, inboxItem: Activity): Promise<void> {
-       // GET author from cache
-         if (this.authorCache.get(authorId)) {
-            let author = this.authorCache.get(authorId);
+            let author = await this.getAuthor(authorId);
             let nodeId = author?.id 
             nodeId = getURL(nodeId || "");
             if (nodeId) {
                 return await this.nodes[nodeId].sendToInbox(authorId, inboxItem);
             }
-         }
+         
     }
 
     
