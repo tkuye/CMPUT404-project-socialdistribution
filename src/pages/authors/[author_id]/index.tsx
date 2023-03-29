@@ -37,7 +37,7 @@ const Page: NextPage<Props> = ({authorId, userId}) => {
 	const userAuthor = useAuthor(userId)
 	const {
 		data:author
-	} = useQuery({ queryKey: ['author', authorId], queryFn: async () => await NodeClient.getAuthor(authorId)})
+	} = useQuery({ queryKey: ['authors', authorId], queryFn: async () => await NodeClient.getAuthor(authorId)})
 	const {
 		data:posts
 	} = useQuery({ queryKey: ['posts', authorId], queryFn: async () => await NodeClient.getPosts(authorId)})
@@ -222,7 +222,7 @@ export const getServerSideProps:GetServerSideProps = async (context) => {
 		return data;
 	  })
 
-	  let q2 = queryClient.prefetchQuery(['author', authorId], async () => {
+	  let q2 = queryClient.prefetchQuery(['authors', authorId], async () => {
 		let data = await NodeManager.getAuthor(context.params?.author_id as string);
 		return data;
 	  })

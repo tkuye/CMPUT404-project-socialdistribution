@@ -188,7 +188,6 @@ nodeManager.addNode(getURL(process.env.NEXT_PUBLIC_T7_API_URL || 'https://sd7-ap
 nodeManager.addNode(getURL(process.env.NEXT_PUBLIC_T17_API_URL ||  'https://social-distribution-w23-t17.herokuapp.com'), Team17);
 nodeManager.addNode(getURL(process.env.NEXT_PUBLIC_T12_API_URL || 'https://cmput404-project-data.herokuapp.com/service'), Team12)
 
-console.log(nodeManager.getAuthors().then((authors) => console.log(authors.items?.length)));
 
 const NextAPI = new APIClient();
 

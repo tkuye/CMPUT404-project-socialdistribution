@@ -24,7 +24,9 @@ const SearchPage: React.FC<searchProps> = ({}) => {
 	const form = useForm()
 	const queryClient = useQueryClient()
 
-	const searchQuery = useQuery({ queryKey: ['authors'], queryFn: async () => await NodeClient.getAuthors()})
+	const searchQuery = useQuery({ queryKey: ['authors'], queryFn: async () => await NodeClient.getAuthors()}, {
+		staleTime: 1000 * 60 * 60 * 24,
+	})
 
 	const searchSubmit = async (data:any) => {
 		
@@ -35,7 +37,9 @@ const SearchPage: React.FC<searchProps> = ({}) => {
 			for (let searchItem of searchItems) {
 			const auSearchId = searchItem?.id?.split('/').pop()
 			if (auSearchId) {
-				await queryClient.prefetchQuery(['followers', auSearchId], async () => await NodeClient.getFollowers(auSearchId))
+				await queryClient.prefetchQuery(['followers', auSearchId], async () => await NodeClient.getFollowers(auSearchId), {
+					staleTime: 1000 * 60 * 60 * 24,
+				})
 				await queryClient.prefetchQuery(['followStatus', auSearchId], async () => await NodeClient.checkFollowerStatus(user?.id || '', auSearchId))
 			}
 			}
