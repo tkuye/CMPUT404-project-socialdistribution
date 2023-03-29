@@ -4,7 +4,6 @@ import {Author, ListItem, CommentListItem, Post, Comment, Like, InboxListItem, A
 class API {
     private axiosInstance: AxiosInstance;
 
-
     constructor(axiosConfig?: AxiosRequestConfig) {
         this.axiosInstance = axios.create(
             {   
@@ -12,24 +11,17 @@ class API {
                 ...axiosConfig
             }
         );
-
-
     }
 
-
-
-    public async getAuthors(page:number = 1, size:number = 25, query:string = ''):Promise<ListItem<Author>> {
-        
+    public async getAuthors(page:number = 1, size:number = 25, query:string = ''):Promise<ListItem<Author>> {        
         try {
             const results = await this.axiosInstance.get<ListItem<Author>>(`/authors/`);
-            
             if (results.data.items === undefined) {
                 throw new Error("items is undefined");
             }
             return results.data;
         }
         catch (e) {
-            
             return {
                 type: "authors",
                 items: []
@@ -45,10 +37,8 @@ class API {
                 }
             });
             return result.data;
-            return false;
         }
         catch (e) {
-       
             return false;
         }
     }
@@ -70,35 +60,28 @@ class API {
 
     public async getAuthor(authorId:string):Promise<Author | null> {
         try {
-            
             const result = await this.axiosInstance.get<Author>(`/authors/${authorId}`);
-            
             return result.data;
         }
         catch (e) {
-        
             return null;
         }
     }
 
     public async createAuthor(author:Author):Promise<void> {
-
         try {
             await this.axiosInstance.post<void>(`/authors/`, author);
         } catch (e) {
             console.log(e);
         }
-        
     }
 
     public async updateAuthor(authorId:string, data:Author):Promise<Author | null> {
-
         try {
             const result = await this.axiosInstance.put<Author>(`/authors/${authorId}`, data);
             return result.data;
         }
         catch (e) {
-            
             return null;
         }
     }
@@ -112,7 +95,6 @@ class API {
             return results.data;
         }
         catch (e) {
-        
             return {
                 type: "authors",
                 items: []
@@ -121,66 +103,59 @@ class API {
     }
 
     public async addFollower(authorId: string, foreignAuthorId: string): Promise<void> {
-
+        const FOLLOWER_ENDPOINT = `/authors/${authorId}/followers/${foreignAuthorId}`;
         try {
-        await this.axiosInstance.put<void, any>(`/authors/${authorId}/followers/${foreignAuthorId}`, {
-            status:'friends'
-        });
-        
-        let actor = await this.getAuthor(foreignAuthorId);
-        let object = await this.getAuthor(authorId);
+            await this.axiosInstance.put<void, any>(FOLLOWER_ENDPOINT, { status:'friends' });
 
-        if (actor && object) {
-        await this.sendToInbox(foreignAuthorId, {
-                type: 'follow',
-                summary: `${object.displayName} accepted your follow request`,
-                actor: actor,
-                object: object
-        });
-    }
-    } catch (e) {
-            
-        }
-        
+            let actor = await this.getAuthor(foreignAuthorId);
+            let object = await this.getAuthor(authorId);
+
+            if (actor && object) {
+                await this.sendToInbox(foreignAuthorId, {
+                        type: 'follow',
+                        summary: `${object.displayName} accepted your follow request`,
+                        actor: actor,
+                        object: object
+                    });
+            }
+        } catch (e) {
+            console.error(`Error adding follower at "${FOLLOWER_ENDPOINT}"`);
+            console.error(e);
+        }   
     }
 
     public async checkFollowerStatus(authorId:string, foreignAuthorId:string): Promise<string> {
         try {
             const result = await this.axiosInstance.get<string>(`/authors/${authorId}/followers/${foreignAuthorId}`);
-        return result.data;
+            return result.data;
         }
         catch (e) {
-            
             return 'not_friends'
         }
     }
 
     public async removeFollower(authorId: string, foreignAuthorId: string): Promise<void> {
-
-            try {
-            
-        return await this.axiosInstance.delete<void, any>(`/authors/${authorId}/followers/${foreignAuthorId}`);
+        try {
+            return await this.axiosInstance.delete<void, any>(`/authors/${authorId}/followers/${foreignAuthorId}`);
         } 
         catch (e) {
-            console.log(e);
-        }
-        
+            console.error(e);
+        } 
     }
 
     public async sendFollowRequest(authorTo:Author, authorFrom:Author):Promise<void> {
         try {
-            
             if (authorTo.id) {
-            let authorId = authorTo.id.split('/').pop();
-            await this.sendToInbox(authorId || '', {
-                    type: 'follow',
-                    summary: `${authorFrom?.displayName || 'Someone'} wants to follow you`,
-                    actor: authorFrom,
-                    object: authorTo
-            })
-        }
+                let authorId = authorTo.id.split('/').pop();
+                await this.sendToInbox(authorId || '', {
+                        type: 'follow',
+                        summary: `${authorFrom?.displayName || 'Someone'} wants to follow you`,
+                        actor: authorFrom,
+                        object: authorTo
+                    });
+            }
         } catch (e) {
-            console.log(e);
+            console.error(e);
         }
         
     }
@@ -188,18 +163,16 @@ class API {
     public async getPost(authorId:string, postId:string):Promise<Post | null> {
         try {
             const result = await this.axiosInstance.get<Post>(`/authors/${authorId}/posts/${postId}`);
-        return result.data;
+            return result.data;
         } catch (e) {
-          
+            console.error(e);
             return null;
         } 
     }
 
     public async deletePost(authorId: string, postId: string): Promise<void> {
-
-
         try {
-        return await this.axiosInstance.delete<void, any>(`/authors/${authorId}/posts/${postId}`);
+            return await this.axiosInstance.delete<void, any>(`/authors/${authorId}/posts/${postId}`);
         }
         catch (e) {
             console.log(e);
@@ -212,57 +185,51 @@ class API {
             if (results.data.items === undefined) {
                 throw new Error("items is undefined");
             }
-           
             return results.data;
-        }
-        catch (e) {
-            
+        } catch (e) {
+            console.error(e);
             return {
                 type: "posts",
                 items: []
             }
         }
-        
     }
 
     public async alertNewPost(authorId:string, post:Post) {
         // Goes to everyones inbox
-            let followers = await this.getFollowers(authorId);
-            if (!followers.items) return;
-            let followerList = followers.items;
-            await Promise.all(followerList.map(async follower => {
-                if (!follower.id) return;
-                 let followerId = follower.id.split('/').pop();
-                 if (post.visibility === 'UNLISTED') {
-                        return; 
-                 } else if (post.visibility === 'PRIVATE') {
-                        let status = await this.checkFollowerStatus(followerId || '', authorId);
-                        if (status == 'true_friends') {
-                            await this.sendToInbox(followerId || '',
-                            post
-                        )
-                        }
-                 } else {
-                    await this.sendToInbox(followerId || '',
-                    post
-                )
-                 }
-            }));
-           
+        let followers = await this.getFollowers(authorId);
+        if (!followers.items) {
+            return;
+        }
+        let followerList = followers.items;
+        await Promise.all(followerList.map(async follower => {
+                if (!follower.id) {
+                    return;
+                }
+                let followerId = follower.id.split('/').pop();
+                if (post.visibility === 'UNLISTED') {
+                    return; 
+                } else if (post.visibility === 'PRIVATE') {
+                    let status = await this.checkFollowerStatus(followerId || '', authorId);
+                    if (status == 'true_friends') {
+                        await this.sendToInbox(followerId || '', post);
+                    }
+                } else {
+                    await this.sendToInbox(followerId || '', post);
+                }
+            }
+        ));  
         // Add to author's inbox
         await this.sendToInbox(authorId,  post)
     }
 
     public async updatePost(authorId:string, postId: string, post: Post): Promise<Post> {
-
         const result = await this.axiosInstance.put<Post>(`/authors/${authorId}/posts/${postId}`, post);
         return result.data;
     }
 
     public async createPost(authorId:string, post:Post):Promise<Post | null> {
-
         try {
-            
             let result = await this.axiosInstance.post<Post>(`/authors/${authorId}/posts/`, post);
             return result.data;
         }
@@ -299,64 +266,51 @@ class API {
             return result.data;
         }
         catch (e) {
-        
             return null;
         }
     }
 
     public async createLike(authorId:string, post:Post, authorFrom:Author):Promise<void> {
-        
         try {
-
-        await this.sendToInbox(authorId, {
-                "@context": "https://www.w3.org/ns/activitystreams",
-                "summary": `${authorFrom.displayName} liked your post: ${post.title}`,
-                type: 'like',
-                author: authorFrom,
-                object: post.id,
-            }
-        );
-
+            await this.sendToInbox(authorId, {
+                    "@context": "https://www.w3.org/ns/activitystreams",
+                    "summary": `${authorFrom.displayName} liked your post: ${post.title}`,
+                    type: 'like',
+                    author: authorFrom,
+                    object: post.id,
+                }
+            );
         } catch (e) {
-            console.log(e);
-        }
-        
+            console.error(e);
+        }     
     }
-
 
 
     public async createCommentLike(authorId:string, comment:Comment, authorFrom:Author):Promise<void> {
-      
         try {
-
-        await this.sendToInbox(authorId, {
-                    "@context": "https://www.w3.org/ns/activitystreams",
-                    "summary": `${authorFrom.displayName} liked your comment`,
-                    type: 'like',
-                    author: authorFrom,
-                    object: comment?.id || '',
-                }
-            );
-
+            await this.sendToInbox(authorId, {
+                        "@context": "https://www.w3.org/ns/activitystreams",
+                        "summary": `${authorFrom.displayName} liked your comment`,
+                        type: 'like',
+                        author: authorFrom,
+                        object: comment?.id || '',
+                    }
+                );
         } catch (e) {
             console.log(e);
-        }
-        
+        }   
     }
 
     public async getLiked(authorId:string):Promise<ListItem<Like>> {
-        
         try {
             const results = await this.axiosInstance.get<ListItem<Like>>(`/authors/${authorId}/liked`);
-            
             return results.data;
         } catch (e) {
             return {
                 type: "likes",
                 items: []
             }
-        }
-        
+        }    
     }
 
     public async sendToInbox(authorId:string, activity:Activity):Promise<void> {
@@ -365,10 +319,9 @@ class API {
     }
 
     public async getInbox(authorId:string):Promise<InboxListItem> {
-
         try {
             const results = await this.axiosInstance.get<InboxListItem>(`/authors/${authorId}/inbox/`);
-        return results.data;
+            return results.data;
         }
         catch (e) {
             return {
@@ -383,6 +336,5 @@ class API {
         await this.axiosInstance.delete(`/authors/${authorId}/inbox/`);
     }
 }
-
 
 export default API;

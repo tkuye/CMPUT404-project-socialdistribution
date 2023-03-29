@@ -31,8 +31,9 @@ class Team7 extends API {
         }, 'remote');
     } 
 
+    // TODO: Put this stuff and other documentation in our github wiki so it can still be handy and not take up space.
     /* getFollowers is good
-    example responsefro T7:
+    example response from T7:
     {
         "count": 2,
         "type": "followers",
@@ -87,8 +88,40 @@ class Team7 extends API {
     }
     */
 
+    // 'http://sd7-api.herokuapp.com/api/authors/cf573f12-71ed-4995-a63f-93b60ee3d1c9/followers/https://sd16-api.herokuapp.com/service/authors/afe5dcfe-a763-41c0-8984-f72c1eddb084'
+
+    public async checkFollowerStatus(authorId:string, foreignAuthorId:string): Promise<string> {
+        // Validate parameters 
+        try {
+            let validURL = new URL(foreignAuthorId)
+        } catch (error) {
+            console.error(`Invalid URL for foreignAuthorId for Team 7: "${foreignAuthorId}"`);
+            throw new Error(`Invalid URL for foreignAuthorId for Team 7: "${foreignAuthorId}"`);
+        }
+
+        // Actually check follower status
+        try {
+            // Make Request
+            const followerEndpoint = `/authors/${authorId}/followers/${foreignAuthorId}`;
+            const result = await this.axiosInstance.get<string>(followerEndpoint);
+
+            // Handle Response
+            if (result?.status === 200) {
+                console.debug('Result:');
+                console.debug(result);
+                return result.data;
+            } else {
+                console.error(`Expecting 200, but got ${result?.status} status calling ${followerEndpoint}`);
+                throw new Error('Non 200 status.');
+            }
+        }
+        catch (e) {
+            return 'not_friends'    // If we get a 404 (or anything else), assume the author's are not friends
+        }
+    }
+
+
     public async sendToInbox(authorId:string, activity:Activity):Promise<void> {
-        
         //@ts-ignore
         let author = activity.author ?? activity.actor;
         let buildMsg = (o:string | undefined):T7MsgFormat => { return {
@@ -116,6 +149,7 @@ class Team7 extends API {
         return result.data;
     }
 }
+
 
 const Team17 = new API(process.env.NEXT_PUBLIC_T17_API_URL ||  'https://social-distribution-w23-t17.herokuapp.com', {
     auth:{
