@@ -22,6 +22,9 @@ const LocalNode = new API(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8
 
 
 class Team7 extends API {
+
+    static readonly SUPPORTS_COMMENTS = false;
+
     constructor() {
         super('https://sd7-api.herokuapp.com/api', {
             auth:{
@@ -134,7 +137,7 @@ class Team7 extends API {
             
         let msg:T7MsgFormat;
         switch (activity.type) {
-            case "post" || "comment":
+            case "post" || "comment":   // Note: T7 does not support or (as I understand it,) plan to support comments
                 msg = buildMsg(activity.id);
                 break;
             case "like":
@@ -147,6 +150,17 @@ class Team7 extends API {
         // console.log(activity)
         const result = await this.axiosInstance.post(`/authors/${authorId}/inbox/`, msg);
         return result.data;
+    }
+
+    public getComments(authorId: string, postId: string, page?: number, size?: number): Promise<CommentListItem> {
+        return new Promise<CommentListItem>( (resolve, reject) => {
+            if (Team7.SUPPORTS_COMMENTS)
+            {
+                resolve(super.getComments(authorId, postId, page, size));
+            } else {
+                reject("Team 7 Does not support comments.");
+            }
+        });//.catch( (error) => {console.error(error);});
     }
 }
 
