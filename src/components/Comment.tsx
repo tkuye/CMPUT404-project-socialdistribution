@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { ThumbsUp } from 'react-feather'
 import {NodeClient} from '@/nodes'
 import { useUser } from '@supabase/auth-helpers-react'
+import useAuthor from '@/hooks/useAuthor'
 const Comment: React.FC<CommentProps> = ({
     id,
     author,
@@ -13,6 +14,7 @@ const Comment: React.FC<CommentProps> = ({
 
         const [commentLiked, setCommentLiked] = React.useState(false)
         const user = useUser()
+        const userAuthor = useAuthor(user?.id || '')
 
         useEffect(() => {
             if (!user) return
@@ -22,9 +24,11 @@ const Comment: React.FC<CommentProps> = ({
                 setCommentLiked(liked)
             })
         }, [user])
+
+
         const likeComment = async () => {
             if (!user) return
-            let userAuthor = await NodeClient.getAuthor(user.id)
+            
             if (!userAuthor) return
             let authorId  = author?.id?.split('/').pop() || ''
             await NodeClient.createCommentLike(authorId, {
