@@ -37,7 +37,9 @@ const Page: NextPage<Props> = ({authorId, userId}) => {
 	const userAuthor = useAuthor(userId)
 	const {
 		data:author
-	} = useQuery({ queryKey: ['authors', authorId], queryFn: async () => await NodeClient.getAuthor(authorId)})
+	} = useQuery(['authors', authorId],  async () => await NodeClient.getAuthor(authorId), {
+		
+	})
 	const {
 		data:posts
 	} = useQuery({ queryKey: ['posts', authorId], queryFn: async () => await NodeClient.getPosts(authorId)})
@@ -51,7 +53,7 @@ const Page: NextPage<Props> = ({authorId, userId}) => {
 	} = useQuery({ queryKey: ['followStatus', authorId], queryFn: async () => await NodeClient.checkFollowerStatus(authorId, userId), 
 	enabled: userId !== authorId,
 	onSuccess: (data) => {
-		console.log(data)
+		
 		setFollowStatusState(data)
 	},
 	
@@ -225,6 +227,8 @@ export const getServerSideProps:GetServerSideProps = async (context) => {
 	  let q2 = queryClient.prefetchQuery(['authors', authorId], async () => {
 		let data = await NodeManager.getAuthor(context.params?.author_id as string);
 		return data;
+	  }, {
+		staleTime: 1000 * 60 * 60
 	  })
 
 	  let q4 = queryClient.prefetchQuery(['followStatus', authorId], async () => {

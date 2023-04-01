@@ -41,7 +41,7 @@ const Post: React.FC<PostPr> = ({post, comments}) => {
 		}
 	}, {
 		onSuccess: () => {
-			queryClient.invalidateQueries(['likes', post.id?.split('/').pop() || ''])
+			
 		}
 	})
 

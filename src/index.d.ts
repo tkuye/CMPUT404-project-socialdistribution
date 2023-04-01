@@ -1,3 +1,5 @@
+declare module 'swagger-js-codegen'
+
 export interface Author {
     type: 'author';
     id?: string;

@@ -146,14 +146,14 @@ class API {
     public async sendFollowRequest(authorTo:Author, authorFrom:Author):Promise<void> {
         try {
             if (authorTo.id) {
-                let authorId = authorTo.id.split('/').pop();
-                await this.sendToInbox(authorId || '', {
-                        type: 'follow',
-                        summary: `${authorFrom?.displayName || 'Someone'} wants to follow you`,
-                        actor: authorFrom,
-                        object: authorTo
-                    });
-            }
+            let authorId = authorTo.id.split('/').pop();
+            await this.axiosInstance.post(`/authors/${authorId}/follow-request`, {
+                    type: 'follow',
+                    summary: `${authorFrom?.displayName || 'Someone'} wants to follow you`,
+                    actor: authorFrom,
+                    object: authorTo
+            })
+        }
         } catch (e) {
             console.error(e);
         }

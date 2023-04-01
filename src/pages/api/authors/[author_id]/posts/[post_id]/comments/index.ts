@@ -18,7 +18,7 @@ export default async function handler(
         }
         
         const results = await NodeManager.getComments(author_id as string, post_id as string);
-        console.log('YO')
+
         return res.status(200).json(results);
             
         }

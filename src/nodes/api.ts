@@ -5,6 +5,7 @@ import { uuid } from 'uuidv4';
 class API {
     protected axiosInstance: AxiosInstance;
     private nodeType: "local" | "remote";
+    protected apiURL: string;
     constructor(apiURL: string, axiosConfig?: AxiosRequestConfig, nodeType:"local"|"remote" = "local") {
         this.axiosInstance = axios.create(
             {
@@ -15,7 +16,7 @@ class API {
             }
         );
         this.nodeType = nodeType;
-
+        this.apiURL = apiURL;
     }
 
     public getNodeType(): "local" | "remote" {
@@ -93,7 +94,7 @@ class API {
             return result.data;
         }
         catch (e) {
-            console.log(e);
+           
             return null;
         }
     }
@@ -105,7 +106,7 @@ class API {
         try {
             await this.axiosInstance.post<void>(`/authors/`, author);
         } catch (e) {
-            console.log(e);
+        
         }
         
     }
@@ -395,9 +396,9 @@ class API {
     }
 
     public async sendToInbox(authorId:string, activity:Activity):Promise<void> {
-       console.log("Sending to inbox");
+       
         const result = await this.axiosInstance.post(`/authors/${authorId}/inbox/`, activity);
-        console.log(result.status);
+        
         return result.data;
     }
 

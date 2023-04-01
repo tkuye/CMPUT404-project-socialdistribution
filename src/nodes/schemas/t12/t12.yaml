@@ -1,0 +1,1244 @@
+openapi: 3.0.1
+info:
+  title: API Documentation
+  description: CMPUT 404 Project API Documentation
+  contact:
+    email: qliang2@ualberta.ca
+  license:
+    name: GPLv3 License
+  version: v1
+servers:
+  - url: https://cmput404-project-data.herokuapp.com/
+security:
+  - Basic: []
+paths:
+  /:
+    get:
+      tags:
+        - ''
+      operationId: _list
+      responses:
+        '200':
+          description: ''
+          content: {}
+    post:
+      tags:
+        - ''
+      operationId: _create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - password
+                - username
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: username
+                password:
+                  type: string
+                  description: password
+        required: true
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                required:
+                  - password
+                  - username
+                type: object
+                properties:
+                  username:
+                    type: string
+                    description: username
+                  password:
+                    type: string
+                    description: password
+      x-codegen-request-body-name: data
+  /post/authors/{userId}/like/{postId}:
+    get:
+      tags:
+        - post
+      description: Don't use this get, this is just for testing.
+      operationId: post_authors_like_read
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content: {}
+    post:
+      tags:
+        - post
+      description: Create a like to specified post, no data required.
+      operationId: post_authors_like_create
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '201':
+          description: ''
+          content: {}
+  /post/authors/{userId}/posts/create:
+    get:
+      tags:
+        - post
+      description: Don't use this get, this is just for testing.
+      operationId: post_authors_posts_create_list
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content: {}
+    post:
+      tags:
+        - post
+      description: Create a new post.
+      operationId: post_authors_posts_create_create
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - content
+                - image
+                - title
+              type: object
+              properties:
+                title:
+                  type: string
+                  description: Title is required
+                  example: Sample Title
+                description:
+                  type: string
+                  example: Sample Description
+                content:
+                  type: string
+                  description: Content is required
+                  example: Sample Content
+                visibility:
+                  type: string
+                  example: PUBLIC
+                content_type:
+                  type: string
+                  example: text/plain
+                categories:
+                  type: string
+                  example: Category1, Category2
+                image:
+                  type: object
+                  properties: {}
+                  description: Image is optional(image post or text post)
+                  example: image.png
+        required: true
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                required:
+                  - content
+                  - image
+                  - title
+                type: object
+                properties:
+                  title:
+                    type: string
+                    description: Title is required
+                    example: Sample Title
+                  description:
+                    type: string
+                    example: Sample Description
+                  content:
+                    type: string
+                    description: Content is required
+                    example: Sample Content
+                  visibility:
+                    type: string
+                    example: PUBLIC
+                  content_type:
+                    type: string
+                    example: text/plain
+                  categories:
+                    type: string
+                    example: Category1, Category2
+                  image:
+                    type: object
+                    properties: {}
+                    description: Image is optional(image post or text post)
+                    example: image.png
+      x-codegen-request-body-name: data
+  /post/authors/{userId}/posts/{postId}/comment:
+    get:
+      tags:
+        - post
+      description: Don't use this get, this is just for testing.
+      operationId: post_authors_posts_comment_list
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content: {}
+    post:
+      tags:
+        - post
+      description: Create a new comment on the specified post.
+      operationId: post_authors_posts_comment_create
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - comment
+              type: object
+              properties:
+                comment:
+                  type: string
+                  description: Comment text
+                  example: This is a sample comment.
+                content_type:
+                  type: string
+                  description: Content type of the comment
+                  example: text/plain
+        required: true
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                required:
+                  - comment
+                type: object
+                properties:
+                  comment:
+                    type: string
+                    description: Comment text
+                    example: This is a sample comment.
+                  content_type:
+                    type: string
+                    description: Content type of the comment
+                    example: text/plain
+      x-codegen-request-body-name: data
+  /post/authors/{userId}/posts/{postId}/comments/{commentId}/likes:
+    get:
+      tags:
+        - post
+      description: Don't use this get, this is just for testing.
+      operationId: post_authors_posts_comments_likes_list
+      parameters:
+        - name: commentId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content: {}
+    post:
+      tags:
+        - post
+      description: >-
+        Create a like to specified comment under specified post, no data
+        required.
+      operationId: post_authors_posts_comments_likes_create
+      parameters:
+        - name: commentId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '201':
+          description: ''
+          content: {}
+  /post/authors/{userId}/share/{postId}:
+    get:
+      tags:
+        - post
+      description: Don't use this get, this is just for testing.
+      operationId: post_authors_share_read
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content: {}
+    post:
+      tags:
+        - post
+      description: Share post from current author to another author.
+      operationId: post_authors_share_create
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - sendTo
+              type: object
+              properties:
+                sendTo:
+                  type: string
+                  description: author uuid want receive this share
+                  example: 4e456d55-295b-4a9f-9eh1-3c71732e9f5e
+        required: true
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                required:
+                  - sendTo
+                type: object
+                properties:
+                  sendTo:
+                    type: string
+                    description: author uuid want receive this share
+                    example: 4e456d55-295b-4a9f-9eh1-3c71732e9f5e
+      x-codegen-request-body-name: data
+  /service/authors/:
+    get:
+      tags:
+        - service
+      description: Get all authors' informations.
+      operationId: service_authors_list
+      responses:
+        '200':
+          description: ''
+          content: {}
+  /service/authors/{id}/:
+    get:
+      tags:
+        - service
+      description: Get informations for specific author.
+      operationId: service_authors_read
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content: {}
+    post:
+      tags:
+        - service
+      description: Modify author's information.
+      operationId: service_authors_create
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - github
+                - host
+                - profileImage
+                - url
+              type: object
+              properties:
+                github:
+                  type: string
+                  description: Github URL
+                profileImage:
+                  type: string
+                  description: Profile Image URL
+                host:
+                  type: string
+                  description: Host URL
+                url:
+                  type: string
+                  description: Author URL
+        required: true
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                required:
+                  - github
+                  - host
+                  - profileImage
+                  - url
+                type: object
+                properties:
+                  github:
+                    type: string
+                    description: Github URL
+                  profileImage:
+                    type: string
+                    description: Profile Image URL
+                  host:
+                    type: string
+                    description: Host URL
+                  url:
+                    type: string
+                    description: Author URL
+      x-codegen-request-body-name: data
+  /service/authors/{id}/comments/liked:
+    get:
+      tags:
+        - service
+      description: Get all comments liked by specific author.
+      operationId: service_authors_comments_liked_list
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content: {}
+  /service/authors/{id}/comments/{commentId}/likes:
+    get:
+      tags:
+        - service
+      description: Get all the likes for a specific comment.
+      operationId: service_authors_comments_likes_list
+      parameters:
+        - name: commentId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content: {}
+  /service/authors/{id}/followRequests/{foreignPk}:
+    get:
+      tags:
+        - service
+      description: Don't use this GET, use getFollowers instead.
+      operationId: service_authors_followRequests_read
+      parameters:
+        - name: foreignPk
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content: {}
+    post:
+      tags:
+        - service
+      description: Create a follow request current author.
+      operationId: service_authors_followRequests_create
+      parameters:
+        - name: foreignPk
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '201':
+          description: ''
+          content: {}
+  /service/authors/{id}/followers/:
+    get:
+      tags:
+        - service
+      description: Get all the followers taht follow current user.
+      operationId: service_authors_followers_list
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content: {}
+  /service/authors/{id}/followers/{foreignPk}:
+    get:
+      tags:
+        - service
+      description: Get information of a specific follower.
+      operationId: service_authors_followers_read
+      parameters:
+        - name: foreignPk
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content: {}
+    put:
+      tags:
+        - service
+      description: >-
+        Add a new following relation, make sure the user send out follow request
+        put after /followers/author_uuid.
+      operationId: service_authors_followers_update
+      parameters:
+        - name: foreignPk
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content: {}
+    delete:
+      tags:
+        - service
+      description: Delete a following relation.
+      operationId: service_authors_followers_delete
+      parameters:
+        - name: foreignPk
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: ''
+          content: {}
+  /service/authors/{id}/following/:
+    get:
+      tags:
+        - service
+      description: Get all the users followed by current user.
+      operationId: service_authors_following_list
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content: {}
+  /service/authors/{id}/inbox:
+    get:
+      tags:
+        - service
+      description: >-
+        Get all the posts, comments, follow requests and likes in specific
+        author's inbox.
+      operationId: service_authors_inbox_list
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content: {}
+    post:
+      tags:
+        - service
+      description: >-
+        ###attention: only followRequest is valid now.### Create posts or
+        comments or follow requests or likes to specific author's inbox.
+      operationId: service_authors_inbox_create
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                followRequest:
+                  required:
+                    - author
+                    - summary
+                    - type
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      description: Type of the object, post/follow/like/comment.
+                    summary:
+                      type: string
+                      description: Summary of the follow.
+                      nullable: true
+                    author:
+                      required:
+                        - displayName
+                        - github
+                        - host
+                        - id
+                        - profileImage
+                        - url
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          description: Type of the object, author.
+                        id:
+                          minLength: 1
+                          type: string
+                          description: author.id
+                        url:
+                          minLength: 1
+                          type: string
+                          description: author.url
+                        host:
+                          minLength: 1
+                          type: string
+                          description: author.host
+                        displayName:
+                          maxLength: 100
+                          minLength: 1
+                          type: string
+                          description: author.displayname
+                        github:
+                          type: string
+                          description: author.github
+                        profileImage:
+                          type: string
+                          description: author.profileimage
+                          nullable: true
+        required: true
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  followRequest:
+                    required:
+                      - author
+                      - summary
+                      - type
+                    type: object
+                    properties:
+                      type:
+                        type: string
+                        description: Type of the object, post/follow/like/comment.
+                      summary:
+                        type: string
+                        description: Summary of the follow.
+                        nullable: true
+                      author:
+                        required:
+                          - displayName
+                          - github
+                          - host
+                          - id
+                          - profileImage
+                          - url
+                        type: object
+                        properties:
+                          type:
+                            type: string
+                            description: Type of the object, author.
+                          id:
+                            minLength: 1
+                            type: string
+                            description: author.id
+                          url:
+                            minLength: 1
+                            type: string
+                            description: author.url
+                          host:
+                            minLength: 1
+                            type: string
+                            description: author.host
+                          displayName:
+                            maxLength: 100
+                            minLength: 1
+                            type: string
+                            description: author.displayname
+                          github:
+                            type: string
+                            description: author.github
+                          profileImage:
+                            type: string
+                            description: author.profileimage
+                            nullable: true
+      x-codegen-request-body-name: data
+    delete:
+      tags:
+        - service
+      description: Clear inbox for specific author.
+      operationId: service_authors_inbox_delete
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: ''
+          content: {}
+  /service/authors/{id}/liked:
+    get:
+      tags:
+        - service
+      description: Get all the posts liked by specific author.
+      operationId: service_authors_liked_list
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content: {}
+  /service/authors/{id}/posts/:
+    get:
+      tags:
+        - service
+      description: Get posts create by specific author.
+      operationId: service_authors_posts_list
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content: {}
+    post:
+      tags:
+        - service
+      description: Create a new post, don't use this one, was used for test.
+      operationId: service_authors_posts_create
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - categories
+                - content
+                - contentType
+                - description
+                - origin
+                - source
+                - title
+                - visibility
+              type: object
+              properties:
+                title:
+                  type: string
+                  description: Title of the post
+                source:
+                  type: string
+                  description: Source of the post
+                origin:
+                  type: string
+                  description: Origin of the post
+                description:
+                  type: string
+                  description: Description of the post
+                contentType:
+                  type: string
+                  description: Content type of the post
+                content:
+                  type: string
+                  description: Content of the post
+                categories:
+                  type: string
+                  description: Categories of the post
+                visibility:
+                  type: string
+                  description: Visibility of the post
+        required: true
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                required:
+                  - categories
+                  - content
+                  - contentType
+                  - description
+                  - origin
+                  - source
+                  - title
+                  - visibility
+                type: object
+                properties:
+                  title:
+                    type: string
+                    description: Title of the post
+                  source:
+                    type: string
+                    description: Source of the post
+                  origin:
+                    type: string
+                    description: Origin of the post
+                  description:
+                    type: string
+                    description: Description of the post
+                  contentType:
+                    type: string
+                    description: Content type of the post
+                  content:
+                    type: string
+                    description: Content of the post
+                  categories:
+                    type: string
+                    description: Categories of the post
+                  visibility:
+                    type: string
+                    description: Visibility of the post
+      x-codegen-request-body-name: data
+  /service/authors/{id}/posts/{postsId}/:
+    get:
+      tags:
+        - service
+      description: Get a specific post.
+      operationId: service_authors_posts_read
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: postsId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content: {}
+    put:
+      tags:
+        - service
+      description: Update a specific post, non required.
+      operationId: service_authors_posts_update
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: postsId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content: {}
+    delete:
+      tags:
+        - service
+      description: Delete a specific post.
+      operationId: service_authors_posts_delete
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: postsId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: ''
+          content: {}
+  /service/authors/{id}/posts/{postsId}/comments:
+    get:
+      tags:
+        - service
+      description: Get all the comments of specific post.
+      operationId: service_authors_posts_comments_list
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: postsId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content: {}
+    post:
+      tags:
+        - service
+      description: Post new comments. Don't use this one, just for test.
+      operationId: service_authors_posts_comments_create
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: postsId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '201':
+          description: ''
+          content: {}
+  /service/authors/{id}/posts/{postsId}/comments/{commentId}:
+    get:
+      tags:
+        - service
+      description: Get a specific comment.
+      operationId: service_authors_posts_comments_read
+      parameters:
+        - name: commentId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: postsId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content: {}
+  /service/authors/{id}/posts/{postsId}/image:
+    get:
+      tags:
+        - service
+      description: Get the image of a post.
+      operationId: service_authors_posts_image_list
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: postsId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content: {}
+  /service/authors/{id}/posts/{postsId}/likes:
+    get:
+      tags:
+        - service
+      description: Get all the likes for a specific post.
+      operationId: service_authors_posts_likes_list
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: postsId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content: {}
+  /service/posts/:
+    get:
+      tags:
+        - service
+      description: Get all public posts.
+      operationId: service_posts_list
+      responses:
+        '200':
+          description: ''
+          content: {}
+  /signin/:
+    get:
+      tags:
+        - signin
+      operationId: signin_list
+      responses:
+        '200':
+          description: ''
+          content: {}
+    post:
+      tags:
+        - signin
+      operationId: signin_create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - password
+                - username
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: username
+                password:
+                  type: string
+                  description: password
+        required: true
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                required:
+                  - password
+                  - username
+                type: object
+                properties:
+                  username:
+                    type: string
+                    description: username
+                  password:
+                    type: string
+                    description: password
+      x-codegen-request-body-name: data
+  /signup/:
+    get:
+      tags:
+        - signup
+      operationId: signup_list
+      responses:
+        '200':
+          description: ''
+          content: {}
+    post:
+      tags:
+        - signup
+      operationId: signup_create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - displayName
+                - password
+                - username
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: username
+                password:
+                  type: string
+                  description: password
+                displayName:
+                  type: string
+                  description: displayName
+                github:
+                  type: string
+                  description: github
+                profileImage:
+                  type: object
+                  properties: {}
+                  description: profileImage
+        required: true
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                required:
+                  - displayName
+                  - password
+                  - username
+                type: object
+                properties:
+                  username:
+                    type: string
+                    description: username
+                  password:
+                    type: string
+                    description: password
+                  displayName:
+                    type: string
+                    description: displayName
+                  github:
+                    type: string
+                    description: github
+                  profileImage:
+                    type: object
+                    properties: {}
+                    description: profileImage
+      x-codegen-request-body-name: data
+components:
+  securitySchemes:
+    Basic:
+      type: http
+      scheme: basic
