@@ -30,6 +30,13 @@ const LocalNode = new API(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8
     }
 }, 'local');
 
+const Team17 = new API(process.env.NEXT_PUBLIC_T17_API_URL || 'https://social-distribution-w23-t17.herokuapp.com', {
+    auth:{
+        username: process.env.NEXT_PUBLIC_T17_UNAME || "credential env failure",
+        password: process.env.NEXT_PUBLIC_T17_PW || "credential env failure"
+    }
+}, 'remote');
+
 
 const nodeManager = new Manager({});
 
@@ -48,7 +55,8 @@ const baseUrl = `${parsedUrl.protocol}//${parsedUrl.hostname}${port}`;
 
 nodeManager.addNode(getURL(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/service'), LocalNode);
 nodeManager.addNode(getURL(process.env.NEXT_PUBLIC_T7_API_URL || 'https://sd7-api.herokuapp.com/api'), Team7);
-nodeManager.addNode(getURL(process.env.NEXT_PUBLIC_T12_API_URL || 'https://cmput404-project-data.herokuapp.com/service'), Team12)
+nodeManager.addNode(getURL(process.env.NEXT_PUBLIC_T12_API_URL || 'https://cmput404-project-data.herokuapp.com/service'), Team12);
+nodeManager.addNode(getURL(process.env.NEXT_PUBLIC_T17_API_URL || 'https://social-distribution-w23-t17.herokuapp.com'), Team17);
 
 const NextAPI = new APIClient();
 
