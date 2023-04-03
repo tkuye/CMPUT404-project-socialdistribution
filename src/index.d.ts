@@ -10,6 +10,7 @@ export interface Author {
     profileImage?: string;
     followers?: string[];
     following?: string[];
+    created_at?: string;
 }
 
 export interface Post {

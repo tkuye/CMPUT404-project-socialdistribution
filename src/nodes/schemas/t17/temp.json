@@ -1,0 +1,23 @@
+{
+    "type": "follow",
+    "summary": "Vincent van Gogh wants to follow you",
+    "actor": {
+        "id": "https://sd16-api.herokuapp.com/service/authors/afe5dcfe-a763-41c0-8984-f72c1eddb084",
+        "type": "author",
+        "host": "https://sd16-api.herokuapp.com",
+        "url": "https://sd16-api.herokuapp.com/service/authors/afe5dcfe-a763-41c0-8984-f72c1eddb084",
+        "displayName": "Vincent van Gogh",
+        "github": "https://github.com/Colorblind-Painter",
+        "profileImage": "https://sd16-api.herokuapp.com/service/authors/afe5dcfe-a763-41c0-8984-f72c1eddb084/image",
+        "created_at": "2023-03-27T23:51:33.648145Z"
+    },
+    "object": {
+        "type": "author",
+        "id": "https://social-distribution-w23-t17.herokuapp.com/authors/1996dfd0-02dd-486a-b2de-a74e9a5d8c15",
+        "host": "https://social-distribution-w23-t17.herokuapp.com",
+        "displayName": "aidan",
+        "url": "https://social-distribution-w23-t17.herokuapp.com/authors/1996dfd0-02dd-486a-b2de-a74e9a5d8c15",
+        "github": "https://github.com/AidanHoremans",
+        "profileImage": "https://i.imgur.com/j4aFQxi.jpeg"
+    }
+}
