@@ -28,6 +28,11 @@ const Team17 = new API17(process.env.NEXT_PUBLIC_T17_API_URL || 'https://social-
         username: process.env.NEXT_PUBLIC_T17_UNAME || "credential env failure",
         password: process.env.NEXT_PUBLIC_T17_PW || "credential env failure"
     }
+    // headers: {
+    //     'Content-Type': 'application/json',
+    //     'Accept': 'application/json',
+    //     ''
+    // }
 });
 
 const LocalNode = new API(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/service', {

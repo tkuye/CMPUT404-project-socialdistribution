@@ -29,7 +29,19 @@ class API17 extends APIBase {
 
     public override async getFollowers(authorId: string): Promise<ListItem<Author>> {
         authorId = this.authorId(authorId);
-        return super.getFollowers(authorId);
+        try {
+            const results = await this.axiosInstance.get<ListItem<Author>>(`/authors/${authorId}/followers/`);
+            if (results.data.items === undefined) {
+                throw new Error("items is undefined");
+            }
+            return results.data;
+        }
+        catch (e) {
+            return {
+                type: "authors",
+                items: []
+            }
+        }
     }
 
     public override async sendFollowRequest(authorTo: Author, authorFrom: Author): Promise<void> {
