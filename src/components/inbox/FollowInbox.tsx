@@ -3,6 +3,7 @@ import {  Follow } from '@/index';
 import {NodeClient} from '@/nodes';
 import Link from 'next/link';
 import {useMutation, useQueryClient, useQuery} from '@tanstack/react-query'
+import {useAlert} from 'react-alert'
 interface CommentInboxProps {
     follow: Follow
 }
@@ -10,14 +11,21 @@ interface CommentInboxProps {
 const FollowInbox: React.FC<CommentInboxProps> = ({follow}) => {
     const [isFollow, setIsFollow] = React.useState(false)
     const queryClient = useQueryClient()
+    const alert = useAlert()
     const approveFollowMutation = useMutation(async () => await approveFollow(), {
         onSuccess: () => {
             queryClient.invalidateQueries(['followStatus', follow?.actor?.id?.split('/').pop(), follow?.object?.id?.split('/').pop()])
+            alert.success('Follow request approved')
+        }, onError: (error) => {
+            alert.error('Error approving follow request')
         }
     })
     const rejectFollowMutation = useMutation(async () => await rejectFollow(), {
         onSuccess: () => {
             queryClient.invalidateQueries(['followStatus', follow?.actor?.id?.split('/').pop(), follow?.object?.id?.split('/').pop()])
+            alert.success('Follow request rejected')
+        }, onError: (error) => {
+            alert.error('Error rejecting follow request')
         }
     })
     const {data:followStatus} = useQuery({ queryKey: ['followStatus', follow?.actor?.id?.split('/').pop(), follow?.object?.id?.split('/').pop()], queryFn: async () => await NodeClient.checkFollowerStatus(follow?.object?.id?.split('/').pop() || '', follow?.actor?.id?.split('/').pop() || '')})
