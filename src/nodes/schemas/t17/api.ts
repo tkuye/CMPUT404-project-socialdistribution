@@ -44,6 +44,13 @@ class API17 extends APIBase {
         }
     }
 
+    public override async checkFollowerStatus(authorId: string, foreignAuthorId: string): Promise<string> {
+        let t16APIHost = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/service';
+        authorId = `${t16APIHost}/authors/${authorId}`;
+        foreignAuthorId = this.authorId(foreignAuthorId);
+        return super.checkFollowerStatus(authorId, foreignAuthorId + '/');
+    }
+
     public override async sendFollowRequest(authorTo: Author, authorFrom: Author): Promise<void> {
         try {
             if (authorTo.id) {

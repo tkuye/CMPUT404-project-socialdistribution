@@ -134,7 +134,6 @@ class API {
             return results.data;
         }
         catch (e) {
-        
             return {
                 type: "authors",
                 items: []
@@ -163,10 +162,9 @@ class API {
     public async checkFollowerStatus(authorId:string, foreignAuthorId:string): Promise<string> {
         try {
             const result = await this.axiosInstance.get<string>(`/authors/${authorId}/followers/${foreignAuthorId}`);
-        return result.data;
+            return result.data;
         }
         catch (e) {
-            
             return 'not_friends'
         }
     }
