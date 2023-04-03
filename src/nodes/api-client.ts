@@ -323,7 +323,7 @@ class API {
 
     public async sendToInbox(authorId:string, activity:Activity):Promise<void> {
         const result = await this.axiosInstance.post(`/authors/${authorId}/inbox/`, activity, {
-            timeout: 4000
+            timeout: 8000
         });
         return result.data;
     }
