@@ -106,7 +106,7 @@ class NodeManager  {
     public async updateAuthor(authorId: string, data:Author): Promise<Author | null> {
         for (const node of Object.values(this.nodes)) {
             if (node.getNodeType() === "local") {
-                await node.updateAuthor(authorId, data);
+                return await node.updateAuthor(authorId, data);
             }
         }
 
@@ -388,7 +388,8 @@ class NodeManager  {
                     let inboxPosts = inboxItems.map(async (item) => {
                         if (item.type === 'post') {
                             let id = item.id?.split('/').pop() || '';
-                            let post = await this.getPost(authorId, id);
+                            let author_id = item?.author?.id?.split('/').pop() || '';
+                            let post = await this.getPost(author_id, id);
                             if (post) {
                                 return post;
                             }

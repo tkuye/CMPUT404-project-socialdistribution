@@ -80,7 +80,6 @@ const Stream: React.FC<streamProps> = ({authorId}) => {
 export default Stream
 
 
-export const revalidate = 60
 export const getServerSideProps:GetServerSideProps = async (context) => {
 	const queryClient = new QueryClient()
 	const supabaseServerClient = createServerSupabaseClient(context)
@@ -99,6 +98,7 @@ export const getServerSideProps:GetServerSideProps = async (context) => {
 	  
 	  await queryClient.prefetchQuery(['inbox'], async () => {
 		let inbox = await NodeManager.getInbox(user.id)
+		
 		if (!inbox.items) {
 			inbox.items = [];
 		}

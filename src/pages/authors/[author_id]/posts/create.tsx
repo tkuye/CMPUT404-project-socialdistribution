@@ -101,6 +101,7 @@ const Create: React.FC<createProps> = ({authorId, authors}) => {
 			await router.push(`/authors/${authorId}`)
 			alert.success('Post created successfully!')
 		} catch (error) {
+			console.log(error)
 			alert.error('There was an error creating your post.')
 		}
 		

@@ -120,7 +120,7 @@ class API {
             return result.data;
         }
         catch (e) {
-            
+            console.log(e);
             return null;
         }
     }
@@ -238,6 +238,7 @@ class API {
             let followers = await this.getFollowers(authorId);
             if (!followers.items) return;
             let followerList = followers.items;
+            
             Promise.all(followerList.map(async follower => {
                 if (!follower.id) return;
                  let followerId = follower.id.split('/').pop();
@@ -379,7 +380,7 @@ class API {
     }
 
     public async sendToInbox(authorId:string, activity:Activity):Promise<void> {
-       
+        
         const result = await this.axiosInstance.post(`/authors/${authorId}/inbox/`, activity);
         
         return result.data;

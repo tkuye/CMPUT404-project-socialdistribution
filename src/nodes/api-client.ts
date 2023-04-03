@@ -198,23 +198,25 @@ class API {
             return;
         }
         let followerList = followers.items;
-        await Promise.all(followerList.map(async follower => {
-                if (!follower.id) {
-                    return;
-                }
-                let followerId = follower.id.split('/').pop();
-                if (post.visibility === 'UNLISTED') {
-                    return; 
-                } else if (post.visibility === 'PRIVATE') {
-                    let status = await this.checkFollowerStatus(followerId || '', authorId);
-                    if (status == 'true_friends') {
-                        await this.sendToInbox(followerId || '', post);
-                    }
-                } else {
+
+        for await (let item of followerList) {
+            if (!item.id) {
+                return;
+            }
+            let followerId = item.id.split('/').pop();
+            if (post.visibility === 'UNLISTED') {
+                return; 
+            } else if (post.visibility === 'PRIVATE') {
+                let status = await this.checkFollowerStatus(followerId || '', authorId);
+                if (status == 'true_friends') {
                     await this.sendToInbox(followerId || '', post);
                 }
+            } else {
+                
+                await this.sendToInbox(followerId || '', post);
+                
             }
-        ));  
+        }
         // Add to author's inbox
         await this.sendToInbox(authorId,  post)
     }
