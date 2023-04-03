@@ -8,7 +8,7 @@ export type { OpenAPIConfig } from './core/OpenAPI';
 
 export type { Comment } from './models/Comment';
 export { CommentContentTypeEnum } from './models/CommentContentTypeEnum';
-export { contextEnum } from './models/contextEnum';
+export { ContextEnum } from './models/ContextEnum';
 export type { ExistingAuthor } from './models/ExistingAuthor';
 export type { Follower } from './models/Follower';
 export type { Inbox } from './models/Inbox';
