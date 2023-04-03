@@ -5,6 +5,7 @@ import { ThumbsUp } from 'react-feather'
 import {NodeClient} from '@/nodes'
 import { useUser } from '@supabase/auth-helpers-react'
 import useAuthor from '@/hooks/useAuthor'
+import {useAlert} from 'react-alert'
 const Comment: React.FC<CommentProps> = ({
     id,
     author,
@@ -15,6 +16,7 @@ const Comment: React.FC<CommentProps> = ({
         const [commentLiked, setCommentLiked] = React.useState(false)
         const user = useUser()
         const userAuthor = useAuthor(user?.id || '')
+        const alert = useAlert()
 
         useEffect(() => {
             if (!user) return
@@ -38,7 +40,7 @@ const Comment: React.FC<CommentProps> = ({
                 author: author,
                 type:'comment'
             }, userAuthor)
-
+            alert.success('Liked Comment')
             setCommentLiked(true)
         }
 

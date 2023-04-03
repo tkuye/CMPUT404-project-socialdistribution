@@ -34,12 +34,12 @@ export default async function handler(
             
             const results = await NodeManager.createComment(author_id as string, post_id as string, req.body);
             
-            return res.status(500).json(results);
+            return res.status(200).json(results);
                 
             }
             catch (e) {
                 console.error(e);
-                return res.status(200).json(false);
+                return res.status(500).json(false);
             }
     }
 

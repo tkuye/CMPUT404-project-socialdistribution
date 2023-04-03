@@ -11,21 +11,21 @@ import { GitHub, X } from 'react-feather';
 import { useRouter } from 'next/router';
 import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
 import {NodeManager, NodeClient} from '@/nodes';
-import { Author, Post as PostType } from '@/index';
+import { Author, ListItem, Post as PostType } from '@/index';
 import { Transition, Dialog } from '@headlessui/react';
 import ProfilePreview from '@/components/ProfilePreview';
 import { dehydrate, QueryClient, useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { UserAuthorContextProvider } from '@/contexts/userAuthor';
-import useAuthor from '@/hooks/useAuthor';
 import {useAlert} from 'react-alert'
 interface Props {
 	authorId:string
 	userId:string
 	userAuthor:Author
+	posts:ListItem<PostType>
 }
 
 
-const Page: NextPage<Props> = ({authorId, userId, userAuthor}) => {
+const Page: NextPage<Props> = ({authorId, userId, userAuthor, posts}) => {
 	
 	const [isModalOpen, setIsModalOpen] = useState(false)
 	const [followStatusState, setFollowStatusState] = useState<string | undefined>(undefined)
@@ -38,10 +38,7 @@ const Page: NextPage<Props> = ({authorId, userId, userAuthor}) => {
 	} = useQuery(['authors', authorId],  async () => await NodeClient.getAuthor(authorId), {
 		
 	})
-	const {
-		data:posts
-	} = useQuery({ queryKey: ['posts', authorId], queryFn: async () => await NodeClient.getPosts(authorId)})
-
+	
 	const {
 		data:followers
 	} = useQuery({ queryKey: ['followers', authorId], queryFn: async () => await NodeClient.getFollowers(authorId)})
@@ -93,7 +90,6 @@ const Page: NextPage<Props> = ({authorId, userId, userAuthor}) => {
 		setIsModalOpen(false)
 	}
 
-
 		return (
 			<UserAuthorContextProvider value={userAuthor }>
 		<div className='flex flex-col h-screen'>
@@ -118,7 +114,6 @@ const Page: NextPage<Props> = ({authorId, userId, userAuthor}) => {
 			 
 			<Button
 			onClick={async () => {
-
 
 				if (followStatusState === 'friends' || followStatusState === 'true_friends') {
 					await removeFollowStatusMutation.mutateAsync({authorId:authorId, authorFromId: userId, status: 'not_friends'})
@@ -223,25 +218,33 @@ export const getServerSideProps:GetServerSideProps = async (context) => {
 	  let authorId: string = context.params?.author_id as string;
 
 	  
-	  let q1 =  queryClient.prefetchQuery(['posts', authorId], async () => {
+	  let q1 =  queryClient.fetchQuery(['posts', authorId], async () => {
 		let data = await NodeManager.getPosts(context.params?.author_id as string);
 		return data;
 	  })
 
-	  let q2 = queryClient.prefetchQuery(['authors', authorId], async () => {
+	  let q2 = queryClient.fetchQuery(['authors', authorId], async () => {
 		let data = await NodeManager.getAuthor(context.params?.author_id as string);
 		return data;
 	  }, {
 		staleTime: 1000 * 60 * 60
 	  })
 
-	  let q4 = queryClient.prefetchQuery(['followStatus', authorId], async () => {
+	  let q4 = queryClient.fetchQuery(['followStatus', authorId], async () => {
 		return await NodeManager.checkFollowerStatus(context.params?.author_id as string, user.id);
 	  })
 
 	  let userAuthor = await NodeManager.getAuthor(user.id)
 	
-		await Promise.all([q1, q2, q4])
+		let results = await Promise.all([q1, q2, q4])
+
+		let posts = results[0]
+		let followStatus = results[2]
+
+		if (followStatus !== 'friends' && followStatus !== 'true_friends') {
+			// filter out posts that are not public
+			posts.items = posts.items?.filter((post) => post.visibility === 'PUBLIC')
+		}
 	
 		return {
 			props: {
@@ -249,6 +252,7 @@ export const getServerSideProps:GetServerSideProps = async (context) => {
 				userAuthor: userAuthor,
 				dehydratedState: dehydrate(queryClient),
 				authorId: context.params?.author_id as string,
+				posts: posts,
 			}
 		}
 	
