@@ -13,7 +13,7 @@ class API17 extends APIBase {
 
     public override async getAuthor(authorId: string): Promise<Author | null> {
         authorId = this.authorId(authorId);
-        return super.getAuthor(authorId);
+        return super.getAuthor(authorId + '/');
     }
 
     public override async getPosts(authorId: string): Promise<ListItem<Post>> {
@@ -24,7 +24,7 @@ class API17 extends APIBase {
     public override async getPost(authorId: string, postId: string): Promise<Post | null> {
         postId = this.postId(authorId, postId);     // Order matters, don't change the order of these two lines
         authorId = this.authorId(authorId);
-        return super.getPost(authorId, postId);
+        return super.getPost(authorId, postId + '/');
     }
 
     public override async getFollowers(authorId: string): Promise<ListItem<Author>> {
