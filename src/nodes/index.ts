@@ -4,19 +4,18 @@ import Manager from "./node-manager";
 import Client from "./node-client";
 import url from "url";
 
-import {Author, ListItem, CommentListItem, Post, Comment, Like, InboxListItem, Activity, T7MsgFormat} from "..";
 import API7 from './schemas/t7/api';
 import API12 from "./schemas/t12/api";
 import API17 from "./schemas/t17/api";
 
-const Team7 = new API7( process.env.NEXT_PUBLIC_T7_API_URL || 'https://sd7-api.herokuapp.com/api', {
+const Team7 = new API7( process.env.NEXT_PUBLIC_T7_API_URL || 'https://sd7-api.herokuapp.com', {
     auth:{
         username: process.env.NEXT_PUBLIC_T7_UNAME || "credential env failure",
         password: process.env.NEXT_PUBLIC_T7_PW || "credential env failure"
     }
 });
 
-const Team12 = new API12( process.env.NEXT_PUBLIC_T12_API_URL || 'https://cmput404-project-data.herokuapp.com/service', {
+const Team12 = new API12( process.env.NEXT_PUBLIC_T12_API_URL || 'https://cmput404-project-data.herokuapp.com', {
     auth:{
         username: process.env.NEXT_PUBLIC_T12_UNAME || "credential env failure",
         password: process.env.NEXT_PUBLIC_T12_PW || "credential env failure"

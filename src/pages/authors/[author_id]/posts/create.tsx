@@ -18,6 +18,7 @@ import { useQuery } from '@tanstack/react-query';
 import AsyncSelect from 'react-select/async';
 import {Options} from 'react-select';
 import { Author } from '@/index';
+import { useAlert } from 'react-alert';
 const MDEditor = dynamic(
 	() => import("@uiw/react-md-editor"),
 	{ ssr: false }
@@ -40,8 +41,7 @@ const Create: React.FC<createProps> = ({authorId, authors}) => {
 	const [markDownValue, setMarkDownValue] = useState<string | undefined>("")
 	const [privateAuthors, setPrivateAuthors] = useState<Option[]>([])
 	const form  = useForm()
-	const supabaseClient = useSupabaseClient()
-  	const user = useUser()
+	const alert = useAlert()
 	const router = useRouter()
 	
 
@@ -99,8 +99,9 @@ const Create: React.FC<createProps> = ({authorId, authors}) => {
 		}
 			
 			await router.push(`/authors/${authorId}`)
+			alert.success('Post created successfully!')
 		} catch (error) {
-			console.log(error)
+			alert.error('There was an error creating your post.')
 		}
 		
 }

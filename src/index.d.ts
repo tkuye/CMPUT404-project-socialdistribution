@@ -17,6 +17,7 @@ export interface Post {
     type: "post";
     id?: string;
     title?: string;
+    published?: string;
     description?: string;
     source?: string;
     origin?: string;
@@ -29,6 +30,25 @@ export interface Post {
     commentSrc?: CommentListItem<Comment>;
     visibility?: string;
     unlisted?: boolean;
+}
+
+export interface T12PostFormat {
+    type?: 'post',
+    post?: {
+        title?: string,
+        id?: string,
+        description?: string,
+        source?: string,
+        origin?: string,
+        contentType?: string,
+        content?: string,
+        author?: Author,
+        comments?: string,
+        published?: string,
+        visibility?: string,
+        unlisted?: boolean,
+    },
+    sender?: Author
 }
 
 export interface Like {
