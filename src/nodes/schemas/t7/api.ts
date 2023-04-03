@@ -37,16 +37,15 @@ class API7 extends APIBase {
         }
         
         let type = activity.type;
-
         
-    try {
-        await AuthorsService.authorsInboxCreate(authorId, {
-            type: type as InboxTypeEnum,
-            summary: summary,
-            object: object,
-            //@ts-ignore
-            author:author
-        })
+        try {
+            await AuthorsService.authorsInboxCreate(authorId, {
+                type: type as InboxTypeEnum,
+                summary: summary,
+                object: object,
+                //@ts-ignore
+                author:author
+            });
         
     } catch (e) {
         console.log(e);

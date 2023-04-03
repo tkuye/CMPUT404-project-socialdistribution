@@ -16,6 +16,7 @@ import { GetServerSideProps } from 'next';
 import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
 import { Post } from '@/index';
 import { dehydrate, QueryClient, useMutation, useQuery } from '@tanstack/react-query';
+import {useAlert} from 'react-alert';
 const MDEditor = dynamic(
 	() => import("@uiw/react-md-editor"),
 	{ ssr: false }
@@ -31,8 +32,8 @@ interface createProps {
 const Edit: React.FC<createProps> = ({postId, authorId}) => {
 
 	const {data: post} = useQuery({queryKey:['post', postId], queryFn:async () => {return await NodeClient.getPost(authorId, postId)}})
+	 const alert = useAlert()
 
-	
 	const [selectValue, setSelectValue] = useState<string>(post?.contentType || 'text/plain');
 	const [markDownValue, setMarkDownValue] = useState<string | undefined>(
         post?.contentType === 'text/markdown' ? post?.content : undefined
@@ -81,6 +82,13 @@ const Edit: React.FC<createProps> = ({postId, authorId}) => {
 		
 		} catch (error) {
 			console.log(error)
+		}
+	}, {
+		onSuccess: async () => {
+			alert.success('Post updated!')
+		}, 
+		onError: async () => {
+			alert.error('Something went wrong!')
 		}
 	})
 

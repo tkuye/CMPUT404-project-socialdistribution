@@ -134,7 +134,6 @@ class API {
             return results.data;
         }
         catch (e) {
-        
             return {
                 type: "authors",
                 items: []
@@ -163,10 +162,9 @@ class API {
     public async checkFollowerStatus(authorId:string, foreignAuthorId:string): Promise<string> {
         try {
             const result = await this.axiosInstance.get<string>(`/authors/${authorId}/followers/${foreignAuthorId}`);
-        return result.data;
+            return result.data;
         }
         catch (e) {
-            
             return 'not_friends'
         }
     }
@@ -187,20 +185,18 @@ class API {
 
     public async sendFollowRequest(authorTo:Author, authorFrom:Author):Promise<void> {
         try {
-            
             if (authorTo.id) {
-            let authorId = authorTo.id.split('/').pop();
-            await this.sendToInbox(authorId || '', {
-                    type: 'follow',
-                    summary: `${authorFrom?.displayName || 'Someone'} wants to follow you`,
-                    actor: authorFrom,
-                    object: authorTo
-            })
-        }
+                let authorId = authorTo.id.split('/').pop();
+                await this.sendToInbox(authorId || '', {
+                        type: 'follow',
+                        summary: `${authorFrom?.displayName || 'Someone'} wants to follow you`,
+                        actor: authorFrom,
+                        object: authorTo
+                })
+            }
         } catch (e) {
             console.log(e);
-        }
-        
+        }  
     }
 
     public async getPost(authorId:string, postId:string):Promise<Post | null> {

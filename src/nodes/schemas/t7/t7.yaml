@@ -1118,7 +1118,7 @@ paths:
           description: ''
 components:
   schemas:
-    '@contextEnum':
+    '@ContextEnum':
       enum:
       - https://www.w3.org/ns/activitystreams
       type: string
@@ -1246,7 +1246,7 @@ components:
           format: uri
           readOnly: true
         '@context':
-          $ref: '#/components/schemas/@contextEnum'
+          $ref: '#/components/schemas/@ContextEnum'
       required:
       - '@context'
       - author
