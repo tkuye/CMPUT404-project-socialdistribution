@@ -226,6 +226,13 @@ class NodeManager  {
         // check cache for author
         let author = await this.getAuthor(authorId);
 
+        if (!author) {
+            return {
+                type: "posts",
+                items: []
+            }
+        }
+
             let node = author?.id
             nodeId = getURL(node || "");
            

@@ -1,4 +1,4 @@
-import React, { useState, Fragment } from 'react'
+import React, { useState, Fragment, useEffect } from 'react'
 import { GetServerSideProps } from 'next';
 import Button from '@/components/Button';
 import { NextPage } from 'next';
@@ -17,24 +17,22 @@ import ProfilePreview from '@/components/ProfilePreview';
 import { dehydrate, QueryClient, useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { UserAuthorContextProvider } from '@/contexts/userAuthor';
 import useAuthor from '@/hooks/useAuthor';
-
+import {useAlert} from 'react-alert'
 interface Props {
-	author:Author
-	posts: PostType[]
-	followers: Author[]
-	followStatus: 'not_friends' | 'friends' | 'true_friends' | 'pending'
 	authorId:string
 	userId:string
+	userAuthor:Author
 }
 
 
-const Page: NextPage<Props> = ({authorId, userId}) => {
+const Page: NextPage<Props> = ({authorId, userId, userAuthor}) => {
 	
 	const [isModalOpen, setIsModalOpen] = useState(false)
 	const [followStatusState, setFollowStatusState] = useState<string | undefined>(undefined)
 	const queryClient = useQueryClient();
   	const user = useUser()
-	const userAuthor = useAuthor(userId)
+	const alert = useAlert();
+
 	const {
 		data:author
 	} = useQuery(['authors', authorId],  async () => await NodeClient.getAuthor(authorId), {
@@ -53,7 +51,7 @@ const Page: NextPage<Props> = ({authorId, userId}) => {
 	} = useQuery({ queryKey: ['followStatus', authorId], queryFn: async () => await NodeClient.checkFollowerStatus(authorId, userId), 
 	enabled: userId !== authorId,
 	onSuccess: (data) => {
-		
+	
 		setFollowStatusState(data)
 	},
 	
@@ -63,6 +61,7 @@ const Page: NextPage<Props> = ({authorId, userId}) => {
 	const router = useRouter()
 
 	const followStatusMutation = useMutation(async ({authorTo, authorFrom, status}:{authorTo:Author, authorFrom:Author, status:string}) => {
+		
 		await NodeClient.sendFollowRequest(authorTo, authorFrom)
 	}, {
 		onSuccess: (data, {status}) => {
@@ -70,6 +69,10 @@ const Page: NextPage<Props> = ({authorId, userId}) => {
 			setFollowStatusState(status)
 			queryClient.invalidateQueries(['followStatus', authorId])
 			queryClient.invalidateQueries(['followers', authorId])
+			alert.success('Follow request sent')
+		}, 
+		onError: (error) => {
+			alert.error('Error sending follow request')
 		}
 	})
 
@@ -80,6 +83,9 @@ const Page: NextPage<Props> = ({authorId, userId}) => {
 			setFollowStatusState(status)	
 			queryClient.invalidateQueries(['followStatus', authorId])
 			queryClient.invalidateQueries(['followers', authorId])
+			alert.success('Unfollowed user')
+		}, onError: (error) => {
+			alert.error('Error unfollowing user');
 		}
 	})
 
@@ -87,7 +93,6 @@ const Page: NextPage<Props> = ({authorId, userId}) => {
 	const closeModal = () => {
 		setIsModalOpen(false)
 	}
-
 
 
 		return (
@@ -114,15 +119,15 @@ const Page: NextPage<Props> = ({authorId, userId}) => {
 			 
 			<Button
 			onClick={async () => {
-				if (author && userAuthor) {
-					if (followStatusState === 'not_friends') {
-					await followStatusMutation.mutateAsync({authorTo: author, authorFrom: userAuthor, status: 'pending'})
-				}
+
 
 				if (followStatusState === 'friends' || followStatusState === 'true_friends') {
 					await removeFollowStatusMutation.mutateAsync({authorId:authorId, authorFromId: userId, status: 'not_friends'})
 				}
-				
+				else if (author && userAuthor) {
+					
+					await followStatusMutation.mutateAsync({authorTo: author, authorFrom: userAuthor, status: 'pending'})
+
 			}}}
 			name={
 				!followStatusState && (followStatus === 'not_friends' ? 'Follow' : followStatus === 'friends' ? 'Unfollow' : followStatus === 'true_friends' ? 'Unfollow' : 'Pending') ||
@@ -234,12 +239,15 @@ export const getServerSideProps:GetServerSideProps = async (context) => {
 	  let q4 = queryClient.prefetchQuery(['followStatus', authorId], async () => {
 		return await NodeManager.checkFollowerStatus(context.params?.author_id as string, user.id);
 	  })
+
+	  let userAuthor = await NodeManager.getAuthor(user.id)
 	
 		await Promise.all([q1, q2, q4])
 	
 		return {
 			props: {
 				userId: user.id,
+				userAuthor: userAuthor,
 				dehydratedState: dehydrate(queryClient),
 				authorId: context.params?.author_id as string,
 			}

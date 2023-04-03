@@ -17,6 +17,7 @@ import Button from './Button';
 import Comment from './Comment';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { useUserAuthor } from '@/contexts/userAuthor';
+import {useAlert} from 'react-alert';
 
 interface PostPr {
 	post: PostProps
@@ -31,6 +32,7 @@ const Post: React.FC<PostPr> = ({post, comments}) => {
 	const commentForm = useForm();
 	const queryClient = useQueryClient();
 	const userAuthor = useUserAuthor();
+	const alert = useAlert();
 
 	const likeMutation = useMutation(async () => {	
 		let authorId = post?.author?.id?.split('/').pop() || '';
@@ -41,7 +43,10 @@ const Post: React.FC<PostPr> = ({post, comments}) => {
 		}
 	}, {
 		onSuccess: () => {
-			
+			alert.success('Liked post')
+		}, 
+		onError: () => {
+			alert.error('Error liking post')
 		}
 	})
 
@@ -64,6 +69,10 @@ const Post: React.FC<PostPr> = ({post, comments}) => {
 	}, {
 		onSuccess: () => {
 			queryClient.invalidateQueries(['comments', post.id?.split('/').pop() || ''])
+			alert.success('Commented on post')
+		}, 
+		onError: () => {
+			alert.error('Error commenting on post')
 		}
 	})
 	const closeModal = () => {
